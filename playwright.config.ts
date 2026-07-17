@@ -19,98 +19,98 @@ dotenv.config({ path: environmentPath });
  * @see https://playwright.dev/docs/test-configuration
  */
 export default defineConfig({
-	testDir: './tests',
+    testDir: './tests',
 
-	/* Run tests in files in parallel */
-	fullyParallel: true,
+    /* Run tests in files in parallel */
+    fullyParallel: true,
 
-	/* Fail the build on CI if you accidentally left test.only in the source code */
-	forbidOnly: !!process.env.CI,
+    /* Fail the build on CI if you accidentally left test.only in the source code */
+    forbidOnly: !!process.env.CI,
 
-	/* Retry on CI only */
-	retries: process.env.CI ? 2 : 0,
+    /* Retry on CI only */
+    retries: process.env.CI ? 2 : 0,
 
-	/* Limit parallel workers on CI for stability */
-	workers: process.env.CI ? 1 : undefined,
+    /* Limit parallel workers on CI for stability */
+    workers: process.env.CI ? 1 : undefined,
 
-	/* Reporter configuration */
-	reporter: process.env.CI
-		? [['blob'], ['html', { open: 'never' }]]
-		: [['html', { open: 'on-failure' }]],
+    /* Reporter configuration */
+    reporter: process.env.CI
+        ? [['blob'], ['html', { open: 'never' }]]
+        : [['html', { open: 'on-failure' }]],
 
-	/* Shared settings for all projects */
-	use: {
-		/* Base URL - uncomment and set if using relative URLs */
-		// baseURL: process.env.APP_URL,
+    /* Shared settings for all projects */
+    use: {
+        /* Base URL - uncomment and set if using relative URLs */
+        // baseURL: process.env.APP_URL,
 
-		/* App marks elements with data-test (not the default data-testid) */
-		testIdAttribute: 'data-test',
+        /* App marks elements with data-test (not the default data-testid) */
+        testIdAttribute: 'data-test',
 
-		/* Collect trace when retrying the failed test */
-		trace: 'on-first-retry',
+        /* Collect trace when retrying the failed test */
+        trace: 'on-first-retry',
 
-		/* Screenshot on failure */
-		screenshot: 'only-on-failure',
+        /* Screenshot on failure */
+        screenshot: 'only-on-failure',
 
-		/* Video on failure */
-		video: 'retain-on-failure',
+        /* Video on failure */
+        video: 'retain-on-failure',
 
-		/* Action timeout */
-		actionTimeout: 10000,
+        /* Action timeout */
+        actionTimeout: 10000,
 
-		/* Navigation timeout */
-		navigationTimeout: 30000,
-	},
+        /* Navigation timeout */
+        navigationTimeout: 30000,
+    },
 
-	/* Test timeout */
-	timeout: 60000,
+    /* Test timeout */
+    timeout: 60000,
 
-	/* Expect timeout */
-	expect: {
-		timeout: 10000,
-	},
+    /* Expect timeout */
+    expect: {
+        timeout: 10000,
+    },
 
-	/* Configure projects */
-	projects: [
-		/* Setup project - runs before main tests */
-		{
-			name: 'setup',
-			use: {
-				...devices['Desktop Chrome'],
-				viewport: { width: 1920, height: 1080 },
-			},
-			testMatch: /.*\.setup\.ts/,
-		},
+    /* Configure projects */
+    projects: [
+        /* Setup project - runs before main tests */
+        {
+            name: 'setup',
+            use: {
+                ...devices['Desktop Chrome'],
+                viewport: { width: 1920, height: 1080 },
+            },
+            testMatch: /.*\.setup\.ts/,
+        },
 
-		/* Main test project - Chrome */
-		{
-			name: 'chromium',
-			use: {
-				...devices['Desktop Chrome'],
-				storageState: StorageStatePaths.APP,
-				viewport: { width: 1920, height: 1080 },
-			},
-			dependencies: ['setup'],
-		},
+        /* Main test project - Chrome */
+        {
+            name: 'chromium',
+            use: {
+                ...devices['Desktop Chrome'],
+                storageState: StorageStatePaths.APP,
+                viewport: { width: 1920, height: 1080 },
+            },
+            dependencies: ['setup'],
+        },
 
-		/* Firefox - commented out by default */
-		// {
-		//     name: 'firefox',
-		//     use: {
-		//         ...devices['Desktop Firefox'],
-		//         storageState: '.auth/app/appStorageState.json',
-		//     },
-		//     dependencies: ['setup'],
-		// },
+        /* Firefox - commented out by default */
+        // {
+        //     name: 'firefox',
+        //     use: {
+        //         ...devices['Desktop Firefox'],
+        //         storageState: '.auth/app/appStorageState.json',
+        //     },
+        //     dependencies: ['setup'],
+        // },
 
-		/* WebKit - commented out by default */
-		// {
-		//     name: 'webkit',
-		//     use: {
-		//         ...devices['Desktop Safari'],
-		//         storageState: '.auth/app/appStorageState.json',
-		//     },
-		//     dependencies: ['setup'],
-		// },
-	],
+        /* WebKit - commented out by default */
+        // {
+        //     name: 'webkit',
+        //     use: {
+        //         ...devices['Desktop Safari'],
+        //         storageState: '.auth/app/appStorageState.json',
+        //     },
+        //     dependencies: ['setup'],
+        // },
+    ],
 });
