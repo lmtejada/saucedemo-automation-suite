@@ -93,25 +93,21 @@ export default defineConfig({
             },
             dependencies: ['setup'],
         },
-
-        /* Firefox - commented out by default */
-        // {
-        //     name: 'firefox',
-        //     use: {
-        //         ...devices['Desktop Firefox'],
-        //         storageState: '.auth/app/appStorageState.json',
-        //     },
-        //     dependencies: ['setup'],
-        // },
-
-        /* WebKit - commented out by default */
-        // {
-        //     name: 'webkit',
-        //     use: {
-        //         ...devices['Desktop Safari'],
-        //         storageState: '.auth/app/appStorageState.json',
-        //     },
-        //     dependencies: ['setup'],
-        // },
+        {
+            name: 'firefox',
+            use: {
+                ...devices['Desktop Firefox'],
+                storageState: '.auth/app/appStorageState.json',
+            },
+            dependencies: ['setup'],
+        },
+        {
+            name: 'webkit',
+            use: {
+                ...devices['Desktop Safari'],
+                storageState: '.auth/app/appStorageState.json',
+            },
+            dependencies: ['setup'],
+        },
     ],
 });
