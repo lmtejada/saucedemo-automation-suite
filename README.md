@@ -57,20 +57,23 @@ saucedemo-automation-suite/
 
 ## Available Scripts
 
-| Command                                                  | Description                                                  |
-| -------------------------------------------------------- | ------------------------------------------------------------ |
-| `npm test`                                               | Run the full suite across all configured projects            |
-| `npm run test:chromium` / `test:firefox` / `test:webkit` | Run against a single browser (excludes `@destructive` tests) |
-| `npm run test:ci`                                        | Single-worker Chromium run, as used in CI                    |
-| `npm run test:smoke` / `test:sanity` / `test:regression` | Run tests tagged `@smoke`, `@sanity`, or `@regression`       |
-| `npm run test:api` / `test:e2e`                          | Run tests tagged `@api` or `@e2e`                            |
-| `npm run test:destructive`                               | Run tests tagged `@destructive` (single worker)              |
-| `npm run test:debug`                                     | Run in Playwright's debug/inspector mode                     |
-| `npm run test:ui`                                        | Run with Playwright's UI mode                                |
-| `npm run test:headed`                                    | Run headed (excludes `@destructive` tests)                   |
-| `npm run report`                                         | Open the last HTML report                                    |
-| `npm run lint` / `lint:fix`                              | Lint (and auto-fix) the codebase                             |
-| `npm run format`                                         | Format the codebase with Prettier                            |
+### 8.3 Execution script matrix
+
+| Command                                                  | Targeted Suite / Tag | Operational Purpose                                                                            |
+| :------------------------------------------------------- | :------------------- | :--------------------------------------------------------------------------------------------- |
+| `npm test`                                               | `Full Suite`         | Runs the complete suite across all three core browser engines in parallel.                     |
+| `npm run test:chromium` / `test:firefox` / `test:webkit` | `Single Browser`     | Targets a specific engine during local debugging; excludes isolated profile tests.             |
+| `npm run test:smoke`                                     | `@smoke`             | Fast validation runner checking baseline happy-path core workflows.                            |
+| `npm run test:regression`                                | `@regression`        | Deep-dive gate runner validating functional paths, security hooks, and asset mappings.         |
+| `npm run test:a11y`                                      | `@a11y`              | Executes dedicated automated WCAG accessibility audits using Axe-core.                         |
+| `npm run test:visual`                                    | `@visual`            | Triggers pixel-perfect snapshot layout comparisons using the native Playwright engine.         |
+| `npm run test:problematic`                               | `@problematic`       | Runs edge-case behavior suites on a single worker to isolate dynamic application flaws safely. |
+| `npm run test:debug`                                     | N / A                | Run in Playwright's debug/inspector mode                                                       |
+| `npm run test:ui`                                        | N / A                | Run with Playwright's UI mode                                                                  |
+| `npm run test:headed`                                    | N / A                | Run headed (excludes `@problematic` tests)                                                     |
+| `npm run report`                                         | N / A                | Open the last HTML report                                                                      |
+| `npm run lint` / `lint:fix`                              | N / A                | Lint (and auto-fix) the codebase                                                               |
+| `npm run format`                                         | N / A                | Format the codebase with Prettier                                                              |
 
 Tag-based scripts rely on `@tag` annotations in test titles (e.g. `test('... @smoke', ...)`), which will be added as specs are written.
 
