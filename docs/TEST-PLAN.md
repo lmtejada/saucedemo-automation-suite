@@ -141,11 +141,11 @@ This document defines the quality approach for the project SauceDemo: the standa
 
 ### 8.1 Workflow execution matrix
 
-| Trigger                    | Command / Tag                                                   | Scope Included                            | Pipeline Target Action                                                                                                |
-| :------------------------- | :-------------------------------------------------------------- | :---------------------------------------- | :-------------------------------------------------------------------------------------------------------------------- |
-| **Every Push / PR**        | `npm run test:smoke`                                            | `@smoke`                                  | Fast feedback loop validating core authentication and critical happy-path purchase paths.                             |
-| **PR Merge Queue Gate**    | `npm run test:regression`                                       | `@regression` / `@a11y`                   | Executes deep functional validation, routing security checks, and automated WCAG accessibility scans.                 |
-| **Daily Nightly Schedule** | `npm test` / `npm run test:visual` / `npm run test:problematic` | `Full Suite` + `@visual` + `@problematic` | Runs cross-browser regressions, heavy pixel-perfect snapshot comparisons, and single-worker performance/flaw testing. |
+| Trigger                    | Command / Tag                                                   | Scope Included                            | Pipeline Target Action                                                                                                            |
+| :------------------------- | :-------------------------------------------------------------- | :---------------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------- |
+| **Every Push / PR**        | `npm run test:smoke`                                            | `@smoke`                                  | Fast feedback loop validating core authentication and critical happy-path purchase paths.                                         |
+| **PR Merge Queue Gate**    | `npm run test:regression`                                       | `@regression` + `e2e` + `@a11y`           | Executes deep functional validation, e2e critical user journeys, routing security checks, and automated WCAG accessibility scans. |
+| **Daily Nightly Schedule** | `npm test` / `npm run test:visual` / `npm run test:problematic` | `Full Suite` + `@visual` + `@problematic` | Runs cross-browser regressions, heavy pixel-perfect snapshot comparisons, and single-worker performance/flaw testing.             |
 
 ### 8.2 Failure handling & reporting architecture
 
@@ -156,15 +156,18 @@ This document defines the quality approach for the project SauceDemo: the standa
 
 ### 8.3 Execution script matrix
 
-| Command                                                  | Targeted Tag     | Operational Purpose                                                                            |
-| :------------------------------------------------------- | :--------------- | :--------------------------------------------------------------------------------------------- |
-| `npm test`                                               | `Full Suite`     | Runs the complete suite across all three core browser engines in parallel.                     |
-| `npm run test:chromium` / `test:firefox` / `test:webkit` | `Single Browser` | Targets a specific engine during local debugging; excludes isolated profile tests.             |
-| `npm run test:smoke`                                     | `@smoke`         | Fast validation runner checking baseline happy-path core workflows.                            |
-| `npm run test:regression`                                | `@regression`    | Deep-dive gate runner validating functional paths, security hooks, and asset mappings.         |
-| `npm run test:a11y`                                      | `@a11y`          | Executes dedicated automated WCAG accessibility audits using Axe-core.                         |
-| `npm run test:visual`                                    | `@visual`        | Triggers pixel-perfect snapshot layout comparisons using the native Playwright engine.         |
-| `npm run test:problematic`                               | `@problematic`   | Runs edge-case behavior suites on a single worker to isolate dynamic application flaws safely. |
+| Command                                                  | Targeted Tag                              | Operational Purpose                                                                                                |
+| :------------------------------------------------------- | :---------------------------------------- | :----------------------------------------------------------------------------------------------------------------- |
+| `npm test`                                               | `Full Suite`                              | Runs the complete suite across all three core browser engines in parallel, excluding tags @visual and @problematic |
+| `npm run test:chromium` / `test:firefox` / `test:webkit` | `Single Browser`                          | Targets a specific engine during local debugging; excludes isolated profile tests.                                 |
+| `npm run test:smoke`                                     | `@smoke`                                  | Fast validation runner checking baseline happy-path core workflows.                                                |
+| `npm run test:regression`                                | `@regression`                             | Deep-dive gate runner validating functional paths, security hooks, and asset mappings.                             |
+| `npm run test:e2e`                                       | `@e2e`                                    | Executes critical user journey behaviors                                                                           |
+| `npm run test:a11y`                                      | `@a11y`                                   | Executes dedicated automated WCAG accessibility audits using Axe-core.                                             |
+| `npm run test:visual`                                    | `@visual`                                 | Triggers pixel-perfect snapshot layout comparisons using the native Playwright engine.                             |
+| `npm run test:problematic`                               | `@problematic`                            | Runs edge-case behavior suites on a single worker to isolate dynamic application flaws safely.                     |
+| `npm run test:ci`                                        | `@regression` + `@e2e` + `@a11y`          | Executes deep functional validation for gating release testing readiness                                           |
+| `npm run test:nightly`                                   | `Full Suite` + `@visual` + `@problematic` | Executes the full suite across browsers, pixel snapshot comparisons, and single-worker edge-case tests             |
 
 ---
 

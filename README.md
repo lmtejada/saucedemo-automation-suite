@@ -59,21 +59,25 @@ saucedemo-automation-suite/
 
 ### 8.3 Execution script matrix
 
-| Command                                                  | Targeted Suite / Tag | Operational Purpose                                                                            |
-| :------------------------------------------------------- | :------------------- | :--------------------------------------------------------------------------------------------- |
-| `npm test`                                               | `Full Suite`         | Runs the complete suite across all three core browser engines in parallel.                     |
-| `npm run test:chromium` / `test:firefox` / `test:webkit` | `Single Browser`     | Targets a specific engine during local debugging; excludes isolated profile tests.             |
-| `npm run test:smoke`                                     | `@smoke`             | Fast validation runner checking baseline happy-path core workflows.                            |
-| `npm run test:regression`                                | `@regression`        | Deep-dive gate runner validating functional paths, security hooks, and asset mappings.         |
-| `npm run test:a11y`                                      | `@a11y`              | Executes dedicated automated WCAG accessibility audits using Axe-core.                         |
-| `npm run test:visual`                                    | `@visual`            | Triggers pixel-perfect snapshot layout comparisons using the native Playwright engine.         |
-| `npm run test:problematic`                               | `@problematic`       | Runs edge-case behavior suites on a single worker to isolate dynamic application flaws safely. |
-| `npm run test:debug`                                     | N / A                | Run in Playwright's debug/inspector mode                                                       |
-| `npm run test:ui`                                        | N / A                | Run with Playwright's UI mode                                                                  |
-| `npm run test:headed`                                    | N / A                | Run headed (excludes `@problematic` tests)                                                     |
-| `npm run report`                                         | N / A                | Open the last HTML report                                                                      |
-| `npm run lint` / `lint:fix`                              | N / A                | Lint (and auto-fix) the codebase                                                               |
-| `npm run format`                                         | N / A                | Format the codebase with Prettier                                                              |
+| Command                                                  | Targeted Suite / Tag                                     | Operational Purpose                                                                                    |
+| :------------------------------------------------------- | :------------------------------------------------------- | :----------------------------------------------------------------------------------------------------- |
+| `npm test`                                               | `Full Suite` excluding `@visual` and `@problematic` tags | Runs the complete suite across all three core browser engines in parallel.                             |
+| `npm run test:chromium` / `test:firefox` / `test:webkit` | `Single Browser`                                         | Targets a specific engine during local debugging; excludes isolated profile tests.                     |
+| `npm run test:smoke`                                     | `@smoke`                                                 | Fast validation runner checking baseline happy-path core workflows.                                    |
+| `npm run test:regression`                                | `@regression`                                            | Deep-dive gate runner validating functional paths, security hooks, and asset mappings.                 |
+| `npm run test:e2e`                                       | `@e2e`                                                   | Automated cross-page workflows                                                                         |
+| `npm run test:a11y`                                      | `@a11y`                                                  | Executes dedicated automated WCAG accessibility audits using Axe-core.                                 |
+| `npm run test:visual`                                    | `@visual`                                                | Triggers pixel-perfect snapshot layout comparisons using the native Playwright engine.                 |
+| `npm run test:problematic`                               | `@problematic`                                           | Runs edge-case behavior suites on a single worker to isolate dynamic application flaws safely.         |
+| `npm run test:debug`                                     | N / A                                                    | Run in Playwright's debug/inspector mode                                                               |
+| `npm run test:ui`                                        | N / A                                                    | Run with Playwright's UI mode                                                                          |
+| `npm run test:headed`                                    | N / A                                                    | Run headed (excludes `@problematic` tests)                                                             |
+| `npm run test:ci`                                        | `@regression` + `@e2e` + `@a11y`                         | Executes deep functional validation for gating release testing readiness                               |
+| `npm run test:nightly`                                   | `Full Suite` + `@visual` + `@problematic`                | Executes the full suite across browsers, pixel snapshot comparisons, and single-worker edge-case tests |
+| `npm run report`                                         | N / A                                                    | Open the last HTML report                                                                              |
+| `npm run codegen -- <url>`                               | N / A                                                    | Record actions, generate locators                                                                      |
+| `npm run lint` / `lint:fix`                              | N / A                                                    | Lint (and auto-fix) the codebase                                                                       |
+| `npm run format`                                         | N / A                                                    | Format the codebase with Prettier                                                                      |
 
 Tag-based scripts rely on `@tag` annotations in test titles (e.g. `test('... @smoke', ...)`), which will be added as specs are written.
 
@@ -84,6 +88,15 @@ Tag-based scripts rely on `@tag` annotations in test titles (e.g. `test('... @sm
 - **ESLint** (`eslint.config.mts`) enforces TypeScript strictness and a set of Playwright best practices — no hard waits (`no-wait-for-timeout`), web-first assertions, no `test.only`/skipped tests, semantic locators over raw/nth-based ones, no `console` usage, and more.
 - **Prettier** enforces consistent formatting (tabs, single quotes, 80-char width).
 - **Husky + lint-staged** run ESLint and Prettier on staged files before each commit.
+
+### Config & Plugins
+
+| Tool / Package                               | Role in Framework                                                                                      |
+| :------------------------------------------- | :----------------------------------------------------------------------------------------------------- |
+| **`tsconfig.json`**                          | Defines path aliases (`@fixtures/*`, `@enums/*`, `@test-data/*`).                                      |
+| **`eslint-import-resolver-typescript`**      | Reads `tsconfig.json` so ESLint understands `@` aliases without throwing "cannot resolve path" errors. |
+| **`eslint-plugin-no-relative-import-paths`** | Automatically rewrites relative paths (`../../src/...`) to clean `@` aliases.                          |
+| **`eslint-plugin-import-x`**                 | Groups and alphabetizes imports into distinct blocks.                                                  |
 
 ## CI/CD
 

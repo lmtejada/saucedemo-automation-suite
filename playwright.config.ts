@@ -1,6 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 import dotenv from 'dotenv';
-import { StorageStatePaths } from './src/enums/app';
+
+import { StorageStatePaths } from '@enums/app';
 
 /**
  * Load environment variables from .env file.
@@ -41,7 +42,7 @@ export default defineConfig({
     /* Shared settings for all projects */
     use: {
         /* Base URL - uncomment and set if using relative URLs */
-        // baseURL: process.env.APP_URL,
+        baseURL: process.env.APP_URL,
 
         /* App marks elements with data-test (not the default data-testid) */
         testIdAttribute: 'data-test',

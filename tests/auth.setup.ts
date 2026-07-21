@@ -6,12 +6,14 @@
 
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import { test as setup, expect } from '@playwright/test';
-import { StorageStatePaths } from '../src/enums/app';
-import { getEnv } from '../src/utils/config';
 
-setup.describe('auth setup', () => {
-    setup('authenticate as standard user', async ({ page }) => {
+import { test, expect } from '@playwright/test';
+
+import { StorageStatePaths } from '@enums/app';
+import { getEnv } from '@utils/config';
+
+test.describe('auth setup', () => {
+    test('authenticate as standard user', async ({ page }) => {
         const appUrl = getEnv('APP_URL');
         const username = getEnv('USER_NAME');
         const password = getEnv('USER_PASSWORD');

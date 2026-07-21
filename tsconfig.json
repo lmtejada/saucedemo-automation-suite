@@ -1,21 +1,59 @@
 {
     "compilerOptions": {
+        /* -------------------------------------------------------------------------- */
+        /* Path Aliases                                                               */
+        /* -------------------------------------------------------------------------- */
+        "paths": {
+            "@fixtures/*": ["./src/fixtures/*"],
+            "@enums/*": ["./src/enums/*"],
+            "@test-data/*": ["./src/test-data/*"],
+            "@utils/*": ["./src/utils/*"],
+            "@pages/*": ["./src/pages/*"],
+            "@app-types/*": ["./src/types/*"]
+        },
+
+        /* -------------------------------------------------------------------------- */
+        /* Language & Environment Settings                                            */
+        /* -------------------------------------------------------------------------- */
         "target": "ESNext",
+        "lib": ["ESNext", "DOM"], // DOM is included for browser context typings in evaluate()
+        "types": ["node"],
+
+        /* -------------------------------------------------------------------------- */
+        /* Modules & Resolution (NodeNext for ESM support)                            */
+        /* -------------------------------------------------------------------------- */
         "module": "NodeNext",
-        "lib": ["ESNext", "DOM"],
         "moduleResolution": "NodeNext",
-        "esModuleInterop": true,
+        "resolveJsonModule": true, // Allows direct import of JSON test data
         "allowJs": true,
         "checkJs": false,
-        "outDir": "./dist",
+
+        /* -------------------------------------------------------------------------- */
+        /* Emit & Build Output                                                        */
+        /* -------------------------------------------------------------------------- */
         "rootDir": ".",
+        "outDir": "./dist",
+        "noEmit": true, // Playwright transpiles TS in-memory; no build files needed
+
+        /* -------------------------------------------------------------------------- */
+        /* Strict Type-Checking Guardrails                                            */
+        /* -------------------------------------------------------------------------- */
         "strict": true,
         "noImplicitAny": true,
-        "skipLibCheck": true,
+        "esModuleInterop": true,
         "forceConsistentCasingInFileNames": true,
-        "resolveJsonModule": true,
-        "types": ["node"]
+        "skipLibCheck": true // Speeds up compilation by skipping type checking of node_modules
     },
-    "include": ["*.ts", "**/*.ts", "**/*.mts"],
-    "exclude": ["node_modules", "dist", "playwright-report", "test-results"]
+
+    /* -------------------------------------------------------------------------- */
+    /* Scope & Exclusions                                                         */
+    /* -------------------------------------------------------------------------- */
+    "include": ["**/*.ts", "**/*.mts"],
+    "exclude": [
+        "node_modules",
+        "dist",
+        "playwright-report",
+        "test-results",
+        "blob-report"
+    ]
 }

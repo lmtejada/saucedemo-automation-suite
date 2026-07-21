@@ -1,8 +1,9 @@
+import stylistic from '@stylistic/eslint-plugin';
 import tseslint from '@typescript-eslint/eslint-plugin';
 import tsParser from '@typescript-eslint/parser';
-import prettierPlugin from 'eslint-plugin-prettier';
+import importPlugin from 'eslint-plugin-import-x';
 import playwright from 'eslint-plugin-playwright';
-import stylistic from '@stylistic/eslint-plugin';
+import prettierPlugin from 'eslint-plugin-prettier';
 
 /**
  * Prettier configuration for consistent code formatting.
@@ -40,7 +41,7 @@ const config = [
         ignores: ['node_modules', 'dist', 'playwright-report', 'test-results'],
     },
     {
-        files: ['**/*.ts', '**/*.tsx'],
+        files: ['**/*.ts', '**/*.tsx', '**/*.mts'],
         languageOptions: {
             parser: tsParser,
             parserOptions: {
@@ -51,10 +52,20 @@ const config = [
             },
         },
         plugins: {
+            '@stylistic': stylistic,
             '@typescript-eslint': tseslint,
+            'import-x': importPlugin,
             prettier: prettierPlugin,
             playwright,
-            '@stylistic': stylistic,
+        },
+        settings: {
+            // Tells ESLint to read path aliases from tsconfig.json
+            'import-x/resolver': {
+                typescript: {
+                    alwaysTryTypes: true,
+                    project: './tsconfig.json',
+                },
+            },
         },
         rules: {
             ...tsRecommendedRules,
@@ -65,6 +76,42 @@ const config = [
                 'error',
                 'declaration',
                 { allowArrowFunctions: false },
+            ],
+
+            'import-x/order': [
+                'error',
+                {
+                    groups: [
+                        'builtin',
+                        'external', // Block 1: Frameworks, @playwright/test, & App Fixtures
+                        'internal', // Block 2: App Modules (enums, pages, utils)
+                        ['parent', 'sibling', 'index'],
+                        'object',
+                        'type',
+                    ],
+
+                    pathGroups: [
+                        {
+                            // Group fixture imports inside the 'external' block
+                            pattern: '@fixtures/**',
+                            group: 'external',
+                            position: 'before',
+                        },
+                        {
+                            // Keep static JSON data at the bottom
+                            pattern: '**/*.json',
+                            group: 'index',
+                            position: 'after',
+                        },
+                    ],
+
+                    pathGroupsExcludedImportTypes: [],
+                    'newlines-between': 'always',
+                    alphabetize: {
+                        order: 'asc',
+                        caseInsensitive: true,
+                    },
+                },
             ],
 
             // Enforces newline at the end of files
