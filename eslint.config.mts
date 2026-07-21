@@ -92,10 +92,10 @@ const config = [
 
                     pathGroups: [
                         {
-                            // Group fixture imports inside the 'external' block
+                            // Group fixture imports inside the 'external' block, after real third-party packages
                             pattern: '@fixtures/**',
                             group: 'external',
-                            position: 'before',
+                            position: 'after',
                         },
                         {
                             // Keep static JSON data at the bottom
