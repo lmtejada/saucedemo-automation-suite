@@ -22,6 +22,9 @@ dotenv.config({ path: environmentPath });
 export default defineConfig({
     testDir: './tests',
 
+    // Pattern stores snapshots alongside or inside the spec's folder
+    snapshotPathTemplate: '{testDir}/__snapshots__/{testFileName}/{arg}{ext}',
+
     /* Run tests in files in parallel */
     fullyParallel: true,
 
@@ -69,6 +72,12 @@ export default defineConfig({
     /* Expect timeout */
     expect: {
         timeout: 10000,
+        toHaveScreenshot: {
+            // Allow minor sub-pixel rendering differences (e.g., 0.2% variance)
+            maxDiffPixelRatio: 0.02,
+            // Antialiasing option helps avoid small font-smoothing flags
+            threshold: 0.2,
+        },
     },
 
     /* Configure projects */
