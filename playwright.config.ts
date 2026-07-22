@@ -106,7 +106,8 @@ export default defineConfig({
             name: 'firefox',
             use: {
                 ...devices['Desktop Firefox'],
-                storageState: '.auth/app/appStorageState.json',
+                storageState: StorageStatePaths.APP,
+                viewport: { width: 1920, height: 1080 },
             },
             dependencies: ['setup'],
         },
@@ -114,7 +115,8 @@ export default defineConfig({
             name: 'webkit',
             use: {
                 ...devices['Desktop Safari'],
-                storageState: '.auth/app/appStorageState.json',
+                storageState: StorageStatePaths.APP,
+                viewport: { width: 1920, height: 1080 },
             },
             dependencies: ['setup'],
         },

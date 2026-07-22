@@ -4,30 +4,22 @@
  * state so the main test suite can start already authenticated.
  */
 
-import * as fs from 'node:fs';
-import * as path from 'node:path';
-
-import { test, expect } from '@playwright/test';
+import { expect, test } from '@fixtures/app';
 
 import { StorageStatePaths } from '@enums/app';
-import { getEnv } from '@utils/config';
 
 test.describe('auth setup', () => {
-    test('authenticate as standard user', async ({ page }) => {
-        const appUrl = getEnv('APP_URL');
-        const username = getEnv('USER_NAME');
-        const password = getEnv('USER_PASSWORD');
+    test('authenticate as standard user', async ({ page, loginPage }) => {
+        await loginPage.open();
 
-        await page.goto(appUrl);
-
-        await page.getByTestId('username').fill(username);
-        await page.getByTestId('password').fill(password);
-        await page.getByTestId('login-button').click();
+        await loginPage.login({
+            username: process.env.USER_NAME!,
+            password: process.env.USER_PASSWORD!,
+        });
 
         await expect(page).toHaveURL(/inventory\.html/);
         await expect(page.getByTestId('inventory-container')).toBeVisible();
 
-        fs.mkdirSync(path.dirname(StorageStatePaths.APP), { recursive: true });
         await page.context().storageState({ path: StorageStatePaths.APP });
     });
 });
