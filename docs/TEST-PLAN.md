@@ -39,7 +39,7 @@ This document defines the quality approach for the project SauceDemo: the standa
 
 | Risk                                                                                                                                              | Likelihood | Impact | Priority    | Mitigation                                                                                                                               |
 | :------------------------------------------------------------------------------------------------------------------------------------------------ | :--------- | :----- | :---------- | :--------------------------------------------------------------------------------------------------------------------------------------- |
-| **E2E checkout funnel fails silently** <br>_(Users cannot complete a purchase due to button click failures or state drops)_                       | Medium     | High   | 🔴 Critical | Automate the full happy-path E2E checkout daily; implement explicit waits on checkout page transitions.                                  |
+| **E2E checkout funnel fails silently** <br>_(Users cannot complete a purchase due to button click failures or state drops)_                       | Medium     | High   | 🔴 Critical | Automate the full happy-path E2E checkout; implement explicit waits on checkout page transitions.                                        |
 | **Data leakage between active sessions** <br>_(A user can view or alter the shopping cart contents of a completely different user)_               | Low        | High   | 🔴 Critical | Automate a multi-context test: log in as User A, add items, log out, log in as User B, and assert the cart is empty.                     |
 | **Flaky or broken third-party static assets** <br>_(Product images or styling elements fail to load, showing broken links or incorrect graphics)_ | High       | Medium | 🟡 Medium   | Implement automated asset verification tests checking that image `src` paths resolve properly and don't default to broken templates.     |
 | **State loss during workflow navigation** <br>_(Cart items disappear when navigating via the browser back button or using 'Continue Shopping')_   | Medium     | Medium | 🟡 Medium   | Design specific state-preservation assertions across all multi-page transition paths (Inventory → Cart → Checkout).                      |
@@ -187,8 +187,8 @@ This document defines the quality approach for the project SauceDemo: the standa
 | Milestone                     | Target date     | Status         |
 | :---------------------------- | :-------------- | :------------- |
 | **Test plan approved**        | Week 1 (Day 3)  | ✅ Complete    |
-| **Test cases written**        | Week 1 (Day 5)  | 🔄 In Progress |
-| **Automation suite complete** | Week 3 (Day 15) | ⬜ Planned     |
+| **Test cases written**        | Week 1 (Day 5)  | ✅ Complete    |
+| **Automation suite complete** | Week 3 (Day 15) | 🔄 In Progress |
 | **Regression run passed**     | Week 4 (Day 18) | ⬜ Planned     |
 | **UAT sign-off**              | Week 4 (Day 20) | ⬜ Planned     |
 | **Release approved**          | Week 4 (Day 22) | ⬜ Planned     |
