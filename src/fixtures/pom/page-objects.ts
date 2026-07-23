@@ -1,5 +1,6 @@
 import { test as base } from '@playwright/test';
 
+import { InventoryPage } from '@pages/inventory.page';
 import { LoginPage } from '@pages/login.page';
 
 /**
@@ -9,6 +10,8 @@ import { LoginPage } from '@pages/login.page';
 export type FrameworkFixtures = {
     /** Login page object */
     loginPage: LoginPage;
+    /** Inventory page object */
+    inventoryPage: InventoryPage;
 };
 
 /**
@@ -18,5 +21,9 @@ export type FrameworkFixtures = {
 export const test = base.extend<FrameworkFixtures>({
     loginPage: async ({ page }, use) => {
         await use(new LoginPage(page));
+    },
+
+    inventoryPage: async ({ page }, use) => {
+        await use(new InventoryPage(page));
     },
 });
