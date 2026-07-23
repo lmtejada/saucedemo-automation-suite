@@ -88,7 +88,7 @@ Authentication succeeds and redirects to inventory within framework SLA benchmar
 **Notes:**
 Used to test dynamic waiting mechanisms and performance log thresholds. Run on a single worker to prevent parallel timeout noise.
 
-**Status:** ⬜ Not run
+**Status:** ✅ Pass
 
 ---
 
@@ -171,7 +171,7 @@ Selecting sorting dropdown options immediately changes the DOM order of inventor
 **Notes:**
 DOM sequence should be asserted programmatically using item names and numerical price parsing.
 
-**Status:** ⬜ Not run
+**Status:** ✅ Pass
 
 ---
 
@@ -210,7 +210,7 @@ Adding an item updates the button state to "Remove" and increments the cart badg
 **Notes:**
 Validates UI state transition before navigating to cart view.
 
-**Status:** ⬜ Not run
+**Status:** ✅ Pass
 
 ---
 
@@ -249,7 +249,7 @@ Removing an item directly from inventory resets the action button to "Add to car
 **Notes:**
 `problem_user` profile fails this test due to intentionally broken button handlers.
 
-**Status:** ⬜ Not run
+**Status:** ✅ Pass
 
 ---
 
@@ -862,7 +862,7 @@ Core page structural layouts match Ubuntu CI visual baseline snapshots within pi
 **Notes:**
 Generated and executed in Ubuntu CI runner to prevent OS font-rendering anti-aliasing diffs.
 
-**Status:** ⬜ Not run
+**Status:** ✅ Pass
 
 ---
 
@@ -943,7 +943,7 @@ System rejects invalid credentials and displays explicit error message banner.
 | Username | `invalid_user`   |
 | Password | `wrong_password` |
 
-**Status:** ⬜ Not run
+**Status:** ✅ Pass
 
 ---
 
@@ -973,7 +973,7 @@ Unauthenticated direct navigation to protected route is blocked and redirected t
 
 **Actual result:**
 
-**Status:** ⬜ Not run
+**Status:** ✅ Pass
 
 ---
 
@@ -1012,7 +1012,7 @@ Locked out user is barred entry and receives specific account status error messa
 | Username | `locked_out_user` |
 | Password | `secret_sauce`    |
 
-**Status:** ⬜ Not run
+**Status:** ✅ Pass
 
 ---
 

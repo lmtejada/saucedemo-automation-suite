@@ -5,7 +5,6 @@ import { Messages } from '@enums/app';
 import USERS_CREDENTIALS from '@test-data/static/users.json';
 
 /**
- * This test suite covers the authentication feature of the application, including functional and security tests.
  * Mapping different invalid login scenarios to their expected error messages for validation purposes.
  */
 const EXPECTED_ERROR_BY_DESCRIPTION: Record<string, Messages> = {

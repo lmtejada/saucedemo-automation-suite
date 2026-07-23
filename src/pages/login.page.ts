@@ -3,7 +3,7 @@ import { Locator, Page } from '@playwright/test';
 import { TestUser } from '@app-types/app';
 
 /**
- * Page Object for the login page at /auth/login.
+ * Page Object for the login page.
  * Contains locators and methods for interacting with the login form.
  */
 export class LoginPage {
