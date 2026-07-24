@@ -82,14 +82,25 @@ export default defineConfig({
 
     /* Configure projects */
     projects: [
-        /* Setup project - runs before main tests */
+        {
+            name: 'auth',
+            use: {
+                ...devices['Desktop Chrome'],
+                viewport: { width: 1920, height: 1080 },
+            },
+            testMatch: /.*auth\.setup\.ts$/,
+        },
+
+        /* Setup project - runs before main tests, depend on authentication step */
         {
             name: 'setup',
             use: {
                 ...devices['Desktop Chrome'],
                 viewport: { width: 1920, height: 1080 },
+                storageState: StorageStatePaths.APP,
             },
-            testMatch: /.*\.setup\.ts/,
+            testMatch: /^(?!.*auth\.setup\.ts$).*\.setup\.ts$/,
+            dependencies: ['auth'],
         },
 
         /* Main test project - Chrome */
@@ -97,28 +108,28 @@ export default defineConfig({
             name: 'chromium',
             use: {
                 ...devices['Desktop Chrome'],
-                storageState: StorageStatePaths.APP,
                 viewport: { width: 1920, height: 1080 },
+                storageState: StorageStatePaths.CART,
             },
-            dependencies: ['setup'],
+            dependencies: ['auth', 'setup'],
         },
         {
             name: 'firefox',
             use: {
                 ...devices['Desktop Firefox'],
-                storageState: StorageStatePaths.APP,
                 viewport: { width: 1920, height: 1080 },
+                storageState: StorageStatePaths.CART,
             },
-            dependencies: ['setup'],
+            dependencies: ['auth', 'setup'],
         },
         {
             name: 'webkit',
             use: {
                 ...devices['Desktop Safari'],
-                storageState: StorageStatePaths.APP,
                 viewport: { width: 1920, height: 1080 },
+                storageState: StorageStatePaths.CART,
             },
-            dependencies: ['setup'],
+            dependencies: ['auth', 'setup'],
         },
     ],
 });

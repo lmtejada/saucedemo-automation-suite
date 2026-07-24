@@ -7,6 +7,8 @@ import { test as base } from '@playwright/test';
 export type CommonFixtures = {
     /** Resets the storage state of the browser context */
     resetStorageState: () => Promise<void>;
+    /** Removes the cart from local storage */
+    resetCart: () => Promise<void>;
 };
 
 /**
@@ -21,6 +23,13 @@ export const test = base.extend<CommonFixtures>({
             await page.evaluate(() => {
                 localStorage.clear();
                 sessionStorage.clear();
+            });
+        });
+    },
+    resetCart: async ({ page }, use) => {
+        await use(async () => {
+            await page.evaluate(() => {
+                localStorage.removeItem('cart-contents');
             });
         });
     },
