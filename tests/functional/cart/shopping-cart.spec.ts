@@ -41,9 +41,7 @@ test.describe('shopping cart feature', () => {
 
         test(
             'cart page load successfully with empty state',
-            {
-                tag: '@regression',
-            },
+            { tag: '@regression' },
             async ({ page, cartPage, resetCart }) => {
                 await resetCart();
                 await page.reload();
@@ -57,6 +55,27 @@ test.describe('shopping cart feature', () => {
                 await expect(cartPage.checkoutButton).toBeVisible();
                 await expect(cartPage.continueShoppingButton).toBeVisible();
                 await expect(cartPage.getCartItemsCount()).resolves.toBe(0);
+            }
+        );
+
+        test(
+            'the Continue Shopping button successfully returns the user to the inventory page with their current cart state preserved',
+            { tag: '@regression' },
+            async ({ page, cartPage, inventoryPage }) => {
+                const cartItemsBefore = await cartPage.listAllCartItems();
+                const cartCountBefore = await cartPage.nav.getCartCount();
+
+                await cartPage.continueShopping();
+
+                await expect(page).toHaveURL(/inventory\.html/);
+                await expect(inventoryPage.nav.getCartCount()).resolves.toBe(
+                    cartCountBefore
+                );
+
+                await cartPage.open();
+
+                const cartItemsAfter = await cartPage.listAllCartItems();
+                expect(cartItemsAfter).toEqual(cartItemsBefore);
             }
         );
     });
