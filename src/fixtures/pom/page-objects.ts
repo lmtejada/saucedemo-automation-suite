@@ -1,6 +1,9 @@
 import { test as base } from '@playwright/test';
 
 import { CartPage } from '@pages/cart.page';
+import { CheckoutCompletePage } from '@pages/checkout-complete-page';
+import { CheckoutStepOnePage } from '@pages/checkout-step-one.page';
+import { CheckoutStepTwoPage } from '@pages/checkout-step-two.page';
 import { InventoryPage } from '@pages/inventory.page';
 import { LoginPage } from '@pages/login.page';
 
@@ -15,6 +18,12 @@ export type FrameworkFixtures = {
     inventoryPage: InventoryPage;
     /** Cart page object */
     cartPage: CartPage;
+    /** Checkout Step One page object */
+    checkoutStepOnePage: CheckoutStepOnePage;
+    /** Checkout Step Two page object */
+    checkoutStepTwoPage: CheckoutStepTwoPage;
+    /** Checkou Complete page object */
+    checkoutCompletePage: CheckoutCompletePage;
 };
 
 /**
@@ -32,5 +41,17 @@ export const test = base.extend<FrameworkFixtures>({
 
     cartPage: async ({ page }, use) => {
         await use(new CartPage(page));
+    },
+
+    checkoutStepOnePage: async ({ page }, use) => {
+        await use(new CheckoutStepOnePage(page));
+    },
+
+    checkoutStepTwoPage: async ({ page }, use) => {
+        await use(new CheckoutStepTwoPage(page));
+    },
+
+    checkoutCompletePage: async ({ page }, use) => {
+        await use(new CheckoutCompletePage(page));
     },
 });

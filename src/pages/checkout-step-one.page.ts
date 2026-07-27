@@ -11,6 +11,8 @@ import { NavigationComponent } from './components/navigation.component';
 export class CheckoutStepOnePage {
     private readonly page: Page;
     public readonly nav: NavigationComponent;
+    public readonly formContainer: Locator;
+    public readonly errorMessage: Locator;
     public readonly continueButton: Locator;
     public readonly cancelButton: Locator;
 
@@ -18,6 +20,8 @@ export class CheckoutStepOnePage {
         this.page = page;
         this.nav = new NavigationComponent(page);
 
+        this.formContainer = page.getByTestId('checkout-info-container');
+        this.errorMessage = page.getByTestId('error');
         this.continueButton = page.getByRole('button', { name: 'Continue' });
         this.cancelButton = page.getByRole('button', { name: 'Cancel' });
     }
@@ -35,14 +39,21 @@ export class CheckoutStepOnePage {
     }
 
     /**
+     * Retrieves the number of rendered text inputs in the customer form.
+     *
+     * @returns {Promise<number>} Resolves with the number of inputs.
+     */
+    async getFormInputCount(): Promise<number> {
+        return await this.formContainer.getByRole('textbox').count();
+    }
+
+    /**
      * Retrieves the value of a given field.
      *
-     * @returns {Promise<Locator>} Resolves with the Locator for the field
+     * @returns {Promise<Locator>} Resolves with the Locator for the field.
      */
     async getFieldLocator(fieldName: keyof CustomerForm): Promise<Locator> {
-        return this.page.getByRole('textbox', {
-            name: fieldName,
-        });
+        return this.page.getByTestId(fieldName);
     }
 
     /**
@@ -76,7 +87,7 @@ export class CheckoutStepOnePage {
             );
 
             formData[field as keyof CustomerForm] =
-                await fieldLocator.innerText();
+                await fieldLocator.inputValue();
         }
 
         return formData;

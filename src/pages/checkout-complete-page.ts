@@ -3,8 +3,8 @@ import { Locator, Page } from '@playwright/test';
 import { NavigationComponent } from './components/navigation.component';
 
 /**
- * Page Object for the First Step page in Checkout workflow at /checkout-step-one.html.
- * Contains locators and methods for interacting with the customer form data.
+ * Page Object for the Checkout Complete page in Checkout workflow at /checkout-complete.html.
+ * Contains locators and methods for interacting with content of the rendered page.
  */
 export class CheckoutCompletePage {
     private readonly page: Page;
