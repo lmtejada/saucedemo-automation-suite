@@ -108,7 +108,6 @@ test.describe('shopping cart feature', () => {
                 await cartPage.nav.goToShoppingCart();
 
                 const cartItems = await cartPage.listAllCartItems();
-
                 expect(cartItems).toEqual(
                     productsToAdd.map((product) => ({
                         ...product,

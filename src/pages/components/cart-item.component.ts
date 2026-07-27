@@ -38,6 +38,7 @@ export class CartItemComponent {
             price: parseFloat(
                 (await this.itemPrice.innerText()).replace('$', '')
             ),
+
             quantity: parseInt(await this.itemQuantity.innerText()),
         };
     }
