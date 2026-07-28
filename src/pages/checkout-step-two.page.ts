@@ -148,7 +148,7 @@ export class CheckoutStepTwoPage {
     /**
      * Lists the cart price details information from the order summary section.
      *
-     * @returns {Promise<CartTotalDetails>} Resolves with a Cart Total Detauils object.
+     * @returns {Promise<CartTotalDetails>} Resolves with a Cart Total Details object.
      */
     async getCartPriceDetails(): Promise<CartTotalDetails> {
         const cartTotalDetails = {} as CartTotalDetails;
@@ -173,7 +173,7 @@ export class CheckoutStepTwoPage {
     }
 
     /**
-     * Clicks the cancel button to return to abort the checkout workflow.
+     * Clicks the cancel button to abort the checkout workflow.
      *
      * @returns {Promise<void>} Resolves once the cancel button is clicked.
      */

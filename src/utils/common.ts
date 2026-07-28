@@ -5,7 +5,7 @@ export function snakeCase(txt: string): string {
         .replace(/\W+/g, ' ')
         .split(/ |\B(?=[A-Z])/)
         .map((word) => word.toLowerCase())
-        .join('_');
+        .join('-');
 }
 
 export function buildLabelTestId(record: OrderSummaryDetails): string {

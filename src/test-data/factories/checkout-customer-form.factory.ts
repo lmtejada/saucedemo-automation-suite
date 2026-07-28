@@ -44,6 +44,7 @@ export const VALIDATION_SCENARIOS = [
         data: buildCheckoutData({ postalCode: '   ' }),
         expectedError: 'Error: Postal Code is required',
         skip: true,
-        skipReason: `Bug found: Postal Code is not trimmed and Whitespaces are accepted`,
+        skipReason:
+            'Bug found: Postal Code is not trimmed and Whitespaces are accepted',
     },
 ];
