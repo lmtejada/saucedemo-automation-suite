@@ -5,8 +5,10 @@ import { sortProductsByName, sortProductsByPrice } from '@utils/products';
 import INVENTORY_PRODUCTS from '@test-data/static/products.json';
 
 test.describe('inventory feature', () => {
-    test.beforeEach(async ({ inventoryPage }) => {
+    test.beforeEach(async ({ page, inventoryPage, resetCart }) => {
         await inventoryPage.open();
+        await resetCart();
+        await page.reload();
     });
 
     test.describe('functional tests @regression', () => {
