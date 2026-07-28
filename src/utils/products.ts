@@ -1,7 +1,7 @@
 import { ProductDetails } from '@app-types/app';
 
 /**
- * Sorts inventory products alphabetically by name. Mutates and returns the input array.
+ * Sorts inventory products alphabetically by name. Returns a new array, leaving the input untouched.
  *
  * @param products - The list of products to sort.
  * @param sortOption - `'az'` for ascending, `'za'` for descending; any other value returns the list unchanged.
@@ -13,10 +13,10 @@ export function sortProductsByName(
 ): Array<ProductDetails> {
     switch (sortOption) {
         case 'az':
-            return products.sort((a, b) => a.name.localeCompare(b.name));
+            return [...products].sort((a, b) => a.name.localeCompare(b.name));
 
         case 'za':
-            return products.sort((a, b) => b.name.localeCompare(a.name));
+            return [...products].sort((a, b) => b.name.localeCompare(a.name));
 
         default:
             return products;
@@ -24,7 +24,7 @@ export function sortProductsByName(
 }
 
 /**
- * Sorts inventory products by price. Mutates and returns the input array.
+ * Sorts inventory products by price. Returns a new array, leaving the input untouched.
  *
  * @param products - The list of products to sort.
  * @param sortOption - `'lohi'` for ascending, `'hilo'` for descending; any other value returns the list unchanged.
@@ -36,9 +36,9 @@ export function sortProductsByPrice(
 ): Array<ProductDetails> {
     switch (sortOption) {
         case 'lohi':
-            return products.sort((a, b) => a.price - b.price);
+            return [...products].sort((a, b) => a.price - b.price);
         case 'hilo':
-            return products.sort((a, b) => b.price - a.price);
+            return [...products].sort((a, b) => b.price - a.price);
         default:
             return products;
     }
