@@ -10,7 +10,7 @@ test.describe('checkout journey @e2e', () => {
     });
 
     test(
-        'complete full checkout purchase flow',
+        '[TC-012]: complete full checkout purchase flow',
         { tag: '@e2e' },
         async ({
             inventoryPage,

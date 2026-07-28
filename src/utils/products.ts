@@ -1,5 +1,12 @@
 import { ProductDetails } from '@app-types/app';
 
+/**
+ * Sorts inventory products alphabetically by name. Mutates and returns the input array.
+ *
+ * @param products - The list of products to sort.
+ * @param sortOption - `'az'` for ascending, `'za'` for descending; any other value returns the list unchanged.
+ * @returns The sorted list of products.
+ */
 export function sortProductsByName(
     products: Array<ProductDetails>,
     sortOption: string
@@ -16,6 +23,13 @@ export function sortProductsByName(
     }
 }
 
+/**
+ * Sorts inventory products by price. Mutates and returns the input array.
+ *
+ * @param products - The list of products to sort.
+ * @param sortOption - `'lohi'` for ascending, `'hilo'` for descending; any other value returns the list unchanged.
+ * @returns The sorted list of products.
+ */
 export function sortProductsByPrice(
     products: Array<ProductDetails>,
     sortOption: string

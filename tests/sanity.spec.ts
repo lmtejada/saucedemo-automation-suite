@@ -4,7 +4,7 @@ test.describe(
     'framework sanity check',
     { tag: ['@smoke', '@e2e', '@a11y'] },
     () => {
-        test('playwright test runner initializes successfully', async () => {
+        test('[Smoke]: playwright test runner initializes successfully', async () => {
             expect(true).toBe(true);
         });
     }
@@ -18,12 +18,14 @@ test.describe('visual rendering sanity check', { tag: '@visual' }, () => {
         await page.setViewportSize({ width: 1280, height: 720 });
     });
 
-    test('login page - Core Layout Structure Renders', async ({ page }) => {
+    test('[TC-016]: login page - Core Layout Structure Renders', async ({
+        page,
+    }) => {
         // High-level visual snapshot check
         await expect(page).toHaveScreenshot('login-page-render.png');
     });
 
-    test('inventory page - Primary Structural Layout Renders', async ({
+    test('[TC-016]: inventory page - Primary Structural Layout Renders', async ({
         page,
         loginPage,
     }) => {

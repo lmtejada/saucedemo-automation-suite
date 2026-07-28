@@ -13,7 +13,7 @@
 **Type:** Functional<br>
 **Priority:** 🔴 High<br>
 **Automated:** Yes<br>
-**Automation reference:** `tests/functional/auth/login.spec.ts` — Scenario: Successful login redirects to inventory page<br>
+**Automation reference:** `tests/functional/auth/login.spec.ts` — Scenario: "successful login as standard_user"<br>
 **Tags:** `@smoke` `@regression` `@e2e`<br>
 
 **Preconditions:**
@@ -56,7 +56,7 @@ Primary happy-path entry point for standard user workflows.
 **Type:** Functional<br>
 **Priority:** 🟡 Medium<br>
 **Automated:** Yes<br>
-**Automation reference:** `tests/functional/auth/login.spec.ts` — Scenario: Performance glitch user logs in within SLA threshold<br>
+**Automation reference:** `tests/functional/auth/login.spec.ts` — Scenario: "login latency check for performance_glitch_user"<br>
 **Tags:** `@regression` `@problematic`<br>
 
 **Preconditions:**
@@ -141,7 +141,7 @@ Delay is produced organically via real multi-page navigation rather than an arti
 **Type:** Functional<br>
 **Priority:** 🟡 Medium<br>
 **Automated:** Yes<br>
-**Automation reference:** `tests/functional/inventory/sorting.spec.ts` — Scenario: Product sorting updates DOM element sequence<br>
+**Automation reference:** `tests/functional/inventory/products.spec.ts` — Scenario: "product sorting functionality" (sort by name A-Z/Z-A, price low-high/high-low)<br>
 **Tags:** `@regression` `@e2e`<br>
 
 **Preconditions:**
@@ -181,7 +181,7 @@ DOM sequence should be asserted programmatically using item names and numerical 
 **Type:** Functional<br>
 **Priority:** 🔴 High<br>
 **Automated:** Yes<br>
-**Automation reference:** `tests/functional/inventory/cart-state.spec.ts` — Scenario: Adding item changes button label and increments badge count<br>
+**Automation reference:** `tests/functional/inventory/products.spec.ts` — Scenario: "adding a product to the cart updates the cart count and displays the remove button"<br>
 **Tags:** `@smoke` `@regression` `@e2e`<br>
 
 **Preconditions:**
@@ -220,7 +220,7 @@ Validates UI state transition before navigating to cart view.
 **Type:** Functional<br>
 **Priority:** 🟡 Medium<br>
 **Automated:** Yes<br>
-**Automation reference:** `tests/functional/inventory/cart-state.spec.ts` — Scenario: Removing item from inventory view decrements badge<br>
+**Automation reference:** `tests/functional/inventory/products.spec.ts` — Scenario: "removing a product from the cart updates the cart count and displays the add button"<br>
 **Tags:** `@regression` `@e2e`<br>
 
 **Preconditions:**
@@ -301,7 +301,7 @@ All product images on the inventory page resolve to valid, non-broken image reso
 **Type:** Functional<br>
 **Priority:** 🔴 High<br>
 **Automated:** Yes<br>
-**Automation reference:** `tests/functional/cart/data-integrity.spec.ts` — Scenario: Cart items match selected inventory titles and prices<br>
+**Automation reference:** `tests/functional/cart/shopping-cart.spec.ts` — Scenario: "add products from the inventory page and navigate to the cart verifying the exact items were added"<br>
 **Tags:** `@smoke` `@regression` `@e2e`<br>
 
 **Preconditions:**
@@ -341,7 +341,7 @@ Guarantees data model consistency across page boundaries.
 **Type:** Functional<br>
 **Priority:** 🟡 Medium<br>
 **Automated:** Yes<br>
-**Automation reference:** `tests/functional/cart/cart-management.spec.ts` — Scenario: Removing item inside cart view updates list instantly<br>
+**Automation reference:** `tests/functional/cart/shopping-cart.spec.ts` — Scenario: "removing an item from within the cart updates the UI list and badge count without needing a page refresh"<br>
 **Tags:** `@regression` `@e2e`<br>
 
 **Preconditions:**
@@ -380,7 +380,7 @@ Ensures reactive client-side rendering functions correctly.
 **Type:** Functional<br>
 **Priority:** 🟡 Medium<br>
 **Automated:** Yes<br>
-**Automation reference:** `tests/functional/cart/navigation.spec.ts` — Scenario: State preserved when continuing shopping<br>
+**Automation reference:** `tests/functional/cart/shopping-cart.spec.ts` — Scenario: "the Continue Shopping button successfully returns the user to the inventory page with their current cart state preserved"<br>
 **Tags:** `@regression` `@e2e`<br>
 
 **Preconditions:**
@@ -419,7 +419,7 @@ Validates browser history/session storage persistence during navigation.
 **Type:** Functional<br>
 **Priority:** 🟡 Medium<br>
 **Automated:** Yes<br>
-**Automation reference:** Planned — `tests/functional/cart/navigation.spec.ts`<br>
+**Automation reference:** Planned — `tests/functional/cart/shopping-cart.spec.ts` — Scenario: Cart state preserved via browser back-button navigation<br>
 **Tags:** `@regression`<br>
 
 **Preconditions:**
@@ -502,7 +502,7 @@ Directly automates the 🔴 Critical risk in TEST-PLAN §3 ("Data leakage betwee
 **Type:** Functional<br>
 **Priority:** 🔴 High<br>
 **Automated:** Yes<br>
-**Automation reference:** `tests/e2e/purchase-flow.spec.ts` — Scenario: Complete happy-path purchase funnel<br>
+**Automation reference:** `tests/e2e/checkout-e2e.spec.ts` — Scenario: "complete full checkout purchase flow"<br>
 **Tags:** `@smoke` `@regression` `@e2e`<br>
 
 **Preconditions:**
@@ -546,7 +546,7 @@ Primary critical path revenue-generating journey.
 **Type:** Functional<br>
 **Priority:** 🔴 High<br>
 **Automated:** Yes<br>
-**Automation reference:** `tests/functional/checkout/calculations.spec.ts` — Scenario: Item total and tax match final display<br>
+**Automation reference:** `tests/functional/checkout/order-summary.spec.ts` — Scenario: "verify cart items total calculation"<br>
 **Tags:** `@regression` `@e2e`<br>
 
 **Preconditions:**
@@ -590,7 +590,7 @@ _Multi-page, cross-module journeys that exercise the funnel end to end. See also
 **Type:** Functional<br>
 **Priority:** 🔴 High<br>
 **Automated:** Yes<br>
-**Automation reference:** Planned — `tests/e2e/purchase-flow.spec.ts` — Scenario: Multi-item purchase funnel with running total verification<br>
+**Automation reference:** Partially covered — `tests/e2e/checkout-e2e.spec.ts` — Scenario: "complete full checkout purchase flow" (adds 3 items and asserts subtotal only; does not verify tax/total or per-step running totals — full coverage still Planned)<br>
 **Tags:** `@e2e` `@regression`<br>
 
 **Preconditions:**
@@ -631,7 +631,7 @@ Complements TC-012 (single-item happy path) and TC-014 (isolated step-two math c
 **Type:** Functional<br>
 **Priority:** 🟡 Medium<br>
 **Automated:** Yes<br>
-**Automation reference:** Planned — `tests/e2e/purchase-flow.spec.ts` — Scenario: Cancel at checkout step returns user to cart with state intact<br>
+**Automation reference:** Partially covered — `tests/functional/checkout/shipping.spec.ts` (Cancel from step one) and `tests/functional/checkout/order-summary.spec.ts` (Cancel from step two) each test a single cancel in isolation; no test chains cancel→resume→cancel→resume as one journey — full coverage still Planned<br>
 **Tags:** `@e2e` `@regression`<br>
 
 **Preconditions:**
@@ -672,7 +672,7 @@ Not currently covered anywhere in the suite — abandoning checkout is a very co
 **Type:** Functional<br>
 **Priority:** 🟡 Medium<br>
 **Automated:** Yes<br>
-**Automation reference:** Planned — `tests/e2e/purchase-flow.spec.ts` — Scenario: Removing an item mid-funnel updates totals on resumed checkout<br>
+**Automation reference:** Planned — `tests/e2e/checkout-e2e.spec.ts` — Scenario: Removing an item mid-funnel updates totals on resumed checkout<br>
 **Tags:** `@e2e` `@regression`<br>
 
 **Preconditions:**
@@ -712,7 +712,7 @@ Guards against a class of bug where checkout totals are computed once and cached
 **Type:** Functional<br>
 **Priority:** 🟡 Medium<br>
 **Automated:** Yes<br>
-**Automation reference:** Planned — `tests/e2e/purchase-flow.spec.ts` — Scenario: Cart and badge reset after completing an order<br>
+**Automation reference:** Planned — `tests/functional/checkout/order-complete.spec.ts` — Scenario: Cart and badge reset after completing an order<br>
 **Tags:** `@e2e` `@regression`<br>
 
 **Preconditions:**
@@ -750,7 +750,7 @@ TC-012 stops verifying at the confirmation message; this covers the remainder of
 **Type:** Functional<br>
 **Priority:** 🔴 High<br>
 **Automated:** Yes<br>
-**Automation reference:** Planned — `tests/e2e/purchase-flow.spec.ts` — Scenario: performance_glitch_user completes full funnel within SLA<br>
+**Automation reference:** Planned — `tests/e2e/checkout-e2e.spec.ts` — Scenario: performance_glitch_user completes full funnel within SLA<br>
 **Tags:** `@e2e` `@performance` `@problematic`<br>
 
 **Preconditions:**
@@ -793,7 +793,7 @@ TEST-PLAN §3's Critical mitigation calls for automating "the full happy-path E2
 **Type:** Functional<br>
 **Priority:** 🔴 High<br>
 **Automated:** Yes<br>
-**Automation reference:** `tests/functional/lifecycle/logout.spec.ts` — Scenario: Logout clears local session and redirects to login<br>
+**Automation reference:** Planned — `tests/functional/lifecycle/logout.spec.ts` — no logout test currently exists anywhere in the suite<br>
 **Tags:** `@smoke` `@regression`<br>
 
 **Preconditions:**
@@ -834,7 +834,7 @@ Ensures authentication guards and storage resets trigger cleanly.
 **Type:** Functional<br>
 **Priority:** 🟡 Medium<br>
 **Automated:** Yes<br>
-**Automation reference:** `tests/sanity.spec.ts` — Scenario: Core layout visual snapshot comparisons<br>
+**Automation reference:** `tests/sanity.spec.ts` — Scenario: "visual rendering sanity check" (login page & inventory page structural layout renders)<br>
 **Tags:** `@visual`<br>
 
 **Preconditions:**
@@ -914,7 +914,7 @@ Requires adding `@axe-core/playwright` as a dependency before this can be implem
 **Type:** Negative<br>
 **Priority:** 🔴 High<br>
 **Automated:** Yes<br>
-**Automation reference:** `tests/functional/auth/login.spec.ts` — Scenario: Invalid login displays explicit error banner<br>
+**Automation reference:** `tests/functional/auth/login.spec.ts` — Scenario: "error message on invalid credentials - invalid credentials" (data-driven)<br>
 **Tags:** `@smoke` `@regression`<br>
 
 **Preconditions:**
@@ -953,7 +953,7 @@ System rejects invalid credentials and displays explicit error message banner.
 **Type:** Negative<br>
 **Priority:** 🔴 High<br>
 **Automated:** Yes<br>
-**Automation reference:** `tests/functional/auth/login.spec.ts` — Scenario: Direct navigation to protected URL triggers auth guard redirect<br>
+**Automation reference:** `tests/functional/auth/login.spec.ts` — Scenario: "redirect unauthenticated user attempting to bypass to /inventory.html"<br>
 **Tags:** `@regression` `@security`<br>
 
 **Preconditions:**
@@ -983,7 +983,7 @@ Unauthenticated direct navigation to protected route is blocked and redirected t
 **Type:** Negative<br>
 **Priority:** 🔴 High<br>
 **Automated:** Yes<br>
-**Automation reference:** `tests/functional/auth/login.spec.ts` — Scenario: Locked out user displays locked out error banner<br>
+**Automation reference:** `tests/functional/auth/login.spec.ts` — Scenario: "error message on invalid credentials - locked out user" (data-driven)<br>
 **Tags:** `@regression`<br>
 
 **Preconditions:**
@@ -1022,7 +1022,7 @@ Locked out user is barred entry and receives specific account status error messa
 **Type:** Negative<br>
 **Priority:** 🟡 Medium<br>
 **Automated:** Yes<br>
-**Automation reference:** Planned — `tests/functional/checkout/validation.spec.ts` — one data-driven test parametrized over every row in Test data below, mirroring the existing negative-login data-driven pattern in `login.spec.ts`<br>
+**Automation reference:** `tests/functional/checkout/shipping.spec.ts` — Scenario: "validation: ${scenario.description}", data-driven over `VALIDATION_SCENARIOS` in `checkout-customer-form.factory.ts`, mirroring the negative-login data-driven pattern in `login.spec.ts`<br>
 **Tags:** `@regression`<br>
 
 **Preconditions:**
@@ -1052,7 +1052,7 @@ Submitting checkout step one with any required field left blank blocks form subm
 | 4   | _[blank]_  | _[blank]_ | _[blank]_   | `Error: First Name is required`  |
 
 **Notes:**
-Intentionally documented as a single test case data-driven over all four combinations, rather than one TC per field — the automation is a straightforward parametrized loop, the same pattern already used for the negative login scenarios in `login.spec.ts`.
+Intentionally documented as a single test case data-driven over all four combinations, rather than one TC per field — the automation is a straightforward parametrized loop, the same pattern already used for the negative login scenarios in `login.spec.ts`. A fifth scenario (whitespace-only Postal Code) was added during implementation and is currently `test.skip`'d due to a discovered validation bug — see BUG-001 in the Defect log.
 
 **Status:** ⬜ Not run
 
@@ -1062,10 +1062,10 @@ Intentionally documented as a single test case data-driven over all four combina
 
 _Bugs found during this test execution cycle. Link to the issue tracker._
 
-| ID      | Title | Severity    | Steps to reproduce | Linked TC | Status         |
-| ------- | ----- | ----------- | ------------------ | --------- | -------------- |
-| BUG-001 |       | 🔴 Critical |                    | TC-00X    | 🔴 Open        |
-| BUG-002 |       | 🟡 Medium   |                    | TC-00X    | 🟡 In progress |
+| ID      | Title                                                 | Severity  | Steps to reproduce                                                                                                                                                                                                                                                                                   | Linked TC | Status         |
+| ------- | ----------------------------------------------------- | --------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- | -------------- |
+| BUG-001 | Checkout step one accepts whitespace-only Postal Code | 🟡 Medium | 1. Add an item to cart and open `/checkout-step-one.html`. 2. Fill First Name and Last Name with valid values. 3. Enter only spaces (e.g. `"   "`) into Postal Code. 4. Click Continue. Actual: form submits to `/checkout-step-two.html` instead of blocking with `Error: Postal Code is required`. | TC-013    | 🔴 Open        |
+| BUG-002 |                                                       | 🟡 Medium |                                                                                                                                                                                                                                                                                                      | TC-00X    | 🟡 In progress |
 
 ---
 

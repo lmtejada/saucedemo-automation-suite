@@ -14,7 +14,7 @@ test.describe('shopping cart feature', () => {
         });
 
         test(
-            'cart page loads successfully and displays the products list',
+            '[Regression]: cart page loads successfully and displays the products list',
             { tag: '@regression' },
             async ({ page, cartPage }) => {
                 await expect(page).toHaveURL(/cart\.html/);
@@ -30,7 +30,7 @@ test.describe('shopping cart feature', () => {
         );
 
         test(
-            'removing an item from within the cart updates the UI list and badge count without needing a page refresh',
+            '[TC-010]: removing an item from within the cart updates the UI list and badge count without needing a page refresh',
             { tag: '@regression' },
             async ({ cartPage }) => {
                 const cartItem = await cartPage.getCartItemByName(
@@ -45,7 +45,7 @@ test.describe('shopping cart feature', () => {
         );
 
         test(
-            'cart page load successfully with empty state',
+            '[Regression]: cart page load successfully with empty state',
             { tag: '@regression' },
             async ({ page, cartPage, resetCart }) => {
                 await resetCart();
@@ -64,7 +64,7 @@ test.describe('shopping cart feature', () => {
         );
 
         test(
-            'the Continue Shopping button successfully returns the user to the inventory page with their current cart state preserved',
+            '[TC-011]: the Continue Shopping button successfully returns the user to the inventory page with their current cart state preserved',
             { tag: '@regression' },
             async ({ page, cartPage, inventoryPage }) => {
                 const cartItemsBefore = await cartPage.listAllCartItems();
@@ -91,7 +91,7 @@ test.describe('shopping cart feature', () => {
         });
 
         test(
-            'add products from the inventory page and navigate to the cart verifying the exact items were added',
+            '[TC-009]: add products from the inventory page and navigate to the cart verifying the exact items were added',
             { tag: '@smoke' },
             async ({ inventoryPage, cartPage }) => {
                 await inventoryPage.open();

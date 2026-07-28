@@ -16,6 +16,15 @@ const EXPECTED_ERROR_BY_DESCRIPTION: Record<string, Messages> = {
     'locked out user': Messages.LOGIN_ERROR_LOCKED_OUT,
 };
 
+/**
+ * Maps data-driven login scenarios to their docs/TEST-CASES.md TC reference.
+ * Scenarios without a documented TC fall back to a [Regression] label.
+ */
+const TITLE_PREFIX_BY_DESCRIPTION: Record<string, string> = {
+    'invalid credentials': '[TC-002]',
+    'locked out user': '[TC-004]',
+};
+
 test.describe('authentication feature', () => {
     test.beforeEach(async ({ resetStorageState, loginPage }) => {
         await loginPage.open();
@@ -24,7 +33,7 @@ test.describe('authentication feature', () => {
 
     test.describe('functional tests @regression', () => {
         test(
-            'successful login as standard_user',
+            '[TC-001]: successful login as standard_user',
             { tag: ['@smoke', '@regression'] },
             async ({ page, loginPage }) => {
                 await loginPage.login({
@@ -37,8 +46,11 @@ test.describe('authentication feature', () => {
         );
 
         for (const { username, password, description } of USERS_CREDENTIALS) {
+            const prefix =
+                TITLE_PREFIX_BY_DESCRIPTION[description] ?? '[Regression]';
+
             test(
-                `error message on invalid credentials - ${description}`,
+                `${prefix}: error message on invalid credentials - ${description}`,
                 { tag: '@regression' },
                 async ({ loginPage }) => {
                     await loginPage.login({
@@ -56,7 +68,7 @@ test.describe('authentication feature', () => {
 
     test.describe('security tests @security', () => {
         test(
-            'redirect unauthenticated user attempting to bypass to /inventory.html',
+            '[TC-003]: redirect unauthenticated user attempting to bypass to /inventory.html',
             { tag: ['@security', '@regression'] },
             async ({ page, loginPage }) => {
                 await page.goto(`${process.env.APP_URL}/inventory.html`);
@@ -71,7 +83,7 @@ test.describe('authentication feature', () => {
 
     test.describe('performance SLA tests @performance', () => {
         test(
-            'login latency check for performance_glitch_user',
+            '[TC-005]: login latency check for performance_glitch_user',
             { tag: ['@performance', '@problematic'] },
             async ({ page, loginPage }) => {
                 const SLA_THRESHOLD_MS = 10000; // 10 seconds

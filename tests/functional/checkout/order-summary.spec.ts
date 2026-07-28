@@ -14,7 +14,7 @@ test.describe('checkout feature - step two: Order Summary', () => {
         });
 
         test(
-            'checkout step two page loads successfully, display the cart items and the summary details',
+            '[Regression]: checkout step two page loads successfully, display the cart items and the summary details',
             { tag: '@regression' },
             async ({ page, checkoutStepTwoPage }) => {
                 await expect(page).toHaveURL(/checkout-step-two\.html/);
@@ -40,7 +40,7 @@ test.describe('checkout feature - step two: Order Summary', () => {
         );
 
         test(
-            'verify cart items total calculation',
+            '[TC-014]: verify cart items total calculation',
             { tag: ['@smoke', '@regression'] },
             async ({ checkoutStepTwoPage }) => {
                 const expectedCartDetails = {
@@ -58,7 +58,7 @@ test.describe('checkout feature - step two: Order Summary', () => {
         );
 
         test(
-            'the Finish button successfully navigates the user to the Checkout Complete page',
+            '[Smoke]: the Finish button successfully navigates the user to the Checkout Complete page',
             { tag: ['@smoke', '@regression'] },
             async ({ page, checkoutStepTwoPage }) => {
                 await checkoutStepTwoPage.finishCheckout();
@@ -67,7 +67,7 @@ test.describe('checkout feature - step two: Order Summary', () => {
         );
 
         test(
-            'the Cancel button successfully returns the user to the inventory page with their current cart state preserved',
+            '[TC-023]: the Cancel button successfully returns the user to the inventory page with their current cart state preserved',
             { tag: '@regression' },
             async ({ page, inventoryPage, checkoutStepTwoPage }) => {
                 const cartCountBefore =

@@ -16,7 +16,7 @@ test.describe('checkout feature - step one: shipping form', () => {
         });
 
         test(
-            'checkout step one page loads successfully and displays the shipping form',
+            '[Regression]: checkout step one page loads successfully and displays the shipping form',
             { tag: '@regression' },
             async ({ page, checkoutStepOnePage }) => {
                 await expect(page).toHaveURL(/checkout-step-one\.html/);
@@ -39,7 +39,7 @@ test.describe('checkout feature - step one: shipping form', () => {
         );
 
         test(
-            'filling the form and clicking the Continue button successfully leads user to checkout step two page',
+            '[Smoke]: filling the form and clicking the Continue button successfully leads user to checkout step two page',
             { tag: ['@smoke', '@regression'] },
             async ({ page, checkoutStepOnePage }) => {
                 await checkoutStepOnePage.fillForm(FORM_DEFAULT_DATA);
@@ -53,7 +53,7 @@ test.describe('checkout feature - step one: shipping form', () => {
         );
 
         test(
-            'the Cancel button successfully returns the user to the cart page with their current cart state preserved',
+            '[TC-023]: the Cancel button successfully returns the user to the cart page with their current cart state preserved',
             { tag: '@regression' },
             async ({ page, cartPage, checkoutStepOnePage }) => {
                 const cartCountBefore =
@@ -79,7 +79,7 @@ test.describe('checkout feature - step one: shipping form', () => {
 
         for (const scenario of VALIDATION_SCENARIOS) {
             test(
-                `validation: ${scenario.description}`,
+                `[TC-013]: validation: ${scenario.description}`,
                 { tag: '@regression' },
                 async ({ checkoutStepOnePage }) => {
                     // Skips the test automatically if scenario.skip is truthy

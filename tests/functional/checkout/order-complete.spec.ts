@@ -12,7 +12,7 @@ test.describe('checkout feature - Order Complete', () => {
         });
 
         test(
-            'checkout complete page loads successfully',
+            '[Regression]: checkout complete page loads successfully',
             { tag: '@regression' },
             async ({ page, checkoutCompletePage }) => {
                 await expect(page).toHaveURL(/checkout-complete\.html/);
@@ -35,7 +35,7 @@ test.describe('checkout feature - Order Complete', () => {
         );
 
         test(
-            'the Back Home button successfully returns the user to the inventory page',
+            '[Regression]: the Back Home button successfully returns the user to the inventory page',
             { tag: '@regression' },
             async ({ page, checkoutCompletePage }) => {
                 await checkoutCompletePage.navigateToHome();
