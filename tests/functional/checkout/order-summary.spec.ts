@@ -1,0 +1,85 @@
+import { expect, test } from '@fixtures/app';
+
+import { StorageStatePaths } from '@enums/app';
+
+import ORDER_DETAILS from '@test-data/static/order-details.json';
+
+test.describe('checkout feature - step two: Order Summary', () => {
+    test.describe('functional tests @regression', () => {
+        // This suite exercises the summary of a pre-filled cart, so it opts into the seeded cart state.
+        test.use({ storageState: StorageStatePaths.CART });
+
+        test.beforeEach(async ({ checkoutStepTwoPage }) => {
+            await checkoutStepTwoPage.open();
+        });
+
+        test(
+            '[Regression]: checkout step two page loads successfully, display the cart items and the summary details',
+            { tag: '@regression' },
+            async ({ page, checkoutStepTwoPage }) => {
+                await expect(page).toHaveURL(/checkout-step-two\.html/);
+                await expect(
+                    checkoutStepTwoPage.nav.headingTitle
+                ).toBeVisible();
+
+                const headingTitle =
+                    await checkoutStepTwoPage.nav.getHeadingTitle();
+                expect(headingTitle).toBe('Checkout: Overview');
+
+                await expect(
+                    checkoutStepTwoPage.getCartItemsCount()
+                ).resolves.toBe(3);
+
+                const orderSummaryDetails =
+                    await checkoutStepTwoPage.getOrderSummaryDetails();
+                expect(orderSummaryDetails).toEqual(ORDER_DETAILS[0]);
+
+                await expect(checkoutStepTwoPage.finishButton).toBeVisible();
+                await expect(checkoutStepTwoPage.cancelButton).toBeVisible();
+            }
+        );
+
+        test(
+            '[TC-014]: verify cart items total calculation',
+            { tag: ['@smoke', '@regression'] },
+            async ({ checkoutStepTwoPage }) => {
+                const expectedCartDetails = {
+                    subtotal: 89.97,
+                    tax: 7.2,
+                    total: 97.17,
+                };
+
+                const cartItems = await checkoutStepTwoPage.listAllCartItems();
+                const cartDetails =
+                    checkoutStepTwoPage.calculateTotalsFromItems(cartItems);
+
+                expect(cartDetails).toEqual(expectedCartDetails);
+            }
+        );
+
+        test(
+            '[Smoke]: the Finish button successfully navigates the user to the Checkout Complete page',
+            { tag: ['@smoke', '@regression'] },
+            async ({ page, checkoutStepTwoPage }) => {
+                await checkoutStepTwoPage.finishCheckout();
+                await expect(page).toHaveURL(/checkout-complete\.html/);
+            }
+        );
+
+        test(
+            '[TC-023]: the Cancel button successfully returns the user to the inventory page with their current cart state preserved',
+            { tag: '@regression' },
+            async ({ page, inventoryPage, checkoutStepTwoPage }) => {
+                const cartCountBefore =
+                    await checkoutStepTwoPage.nav.getCartCount();
+
+                await checkoutStepTwoPage.cancelCheckout();
+
+                await expect(page).toHaveURL(/inventory\.html/);
+                await expect(inventoryPage.nav.getCartCount()).resolves.toBe(
+                    cartCountBefore
+                );
+            }
+        );
+    });
+});

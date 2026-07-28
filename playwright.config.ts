@@ -82,14 +82,25 @@ export default defineConfig({
 
     /* Configure projects */
     projects: [
-        /* Setup project - runs before main tests */
         {
-            name: 'setup',
+            name: 'auth',
             use: {
                 ...devices['Desktop Chrome'],
                 viewport: { width: 1920, height: 1080 },
             },
-            testMatch: /.*\.setup\.ts/,
+            testMatch: /.*auth\.setup\.ts$/,
+        },
+
+        /* Cart setup project - seeds the pre-filled cart storage state, depends on authentication step */
+        {
+            name: 'cart-setup',
+            use: {
+                ...devices['Desktop Chrome'],
+                viewport: { width: 1920, height: 1080 },
+                storageState: StorageStatePaths.APP,
+            },
+            testMatch: /.*cart\.setup\.ts$/,
+            dependencies: ['auth'],
         },
 
         /* Main test project - Chrome */
@@ -97,28 +108,28 @@ export default defineConfig({
             name: 'chromium',
             use: {
                 ...devices['Desktop Chrome'],
-                storageState: StorageStatePaths.APP,
                 viewport: { width: 1920, height: 1080 },
+                storageState: StorageStatePaths.APP,
             },
-            dependencies: ['setup'],
+            dependencies: ['auth', 'cart-setup'],
         },
         {
             name: 'firefox',
             use: {
                 ...devices['Desktop Firefox'],
-                storageState: StorageStatePaths.APP,
                 viewport: { width: 1920, height: 1080 },
+                storageState: StorageStatePaths.APP,
             },
-            dependencies: ['setup'],
+            dependencies: ['auth', 'cart-setup'],
         },
         {
             name: 'webkit',
             use: {
                 ...devices['Desktop Safari'],
-                storageState: StorageStatePaths.APP,
                 viewport: { width: 1920, height: 1080 },
+                storageState: StorageStatePaths.APP,
             },
-            dependencies: ['setup'],
+            dependencies: ['auth', 'cart-setup'],
         },
     ],
 });

@@ -11,7 +11,7 @@ test.describe('inventory feature', () => {
 
     test.describe('functional tests @regression', () => {
         test(
-            'inventory page loads successfully and displays the products list',
+            '[Smoke]: inventory page loads successfully and displays the products list',
             { tag: ['@smoke', '@regression'] },
             async ({ page, inventoryPage }) => {
                 await expect(page).toHaveURL(/inventory\.html/);
@@ -30,7 +30,7 @@ test.describe('inventory feature', () => {
         );
 
         test(
-            'verify product information is displayed correctly',
+            '[Regression]: verify product information is displayed correctly',
             { tag: '@regression' },
             async ({ inventoryPage }) => {
                 for (const product of INVENTORY_PRODUCTS) {
@@ -50,7 +50,7 @@ test.describe('inventory feature', () => {
         );
 
         test(
-            'adding a product to the cart updates the cart count and displays the remove button',
+            '[TC-007]: adding a product to the cart updates the cart count and displays the remove button',
             { tag: ['@smoke', '@regression'] },
             async ({ inventoryPage }) => {
                 const firstProduct = await inventoryPage.getInventoryItemByName(
@@ -70,7 +70,7 @@ test.describe('inventory feature', () => {
         );
 
         test(
-            'removing a product from the cart updates the cart count and displays the add button',
+            '[TC-008]: removing a product from the cart updates the cart count and displays the add button',
             { tag: ['@smoke', '@regression'] },
             async ({ inventoryPage }) => {
                 const firstProduct = await inventoryPage.getInventoryItemByName(
@@ -91,7 +91,7 @@ test.describe('inventory feature', () => {
         );
 
         test(
-            'clicking the shopping cart link navigates to the cart page',
+            '[Smoke]: clicking the shopping cart link navigates to the cart page',
             { tag: ['@smoke', '@regression'] },
             async ({ page, inventoryPage }) => {
                 await inventoryPage.nav.goToShoppingCart();
@@ -103,7 +103,7 @@ test.describe('inventory feature', () => {
 
     test.describe('product sorting functionality', () => {
         test(
-            'sort products by name (A to Z)',
+            '[TC-006]: sort products by name (A to Z)',
             { tag: '@regression' },
             async ({ inventoryPage }) => {
                 await inventoryPage.productsSort.selectOption('az');
@@ -121,7 +121,7 @@ test.describe('inventory feature', () => {
         );
 
         test(
-            'sort products by name (Z to A)',
+            '[TC-006]: sort products by name (Z to A)',
             { tag: '@regression' },
             async ({ inventoryPage }) => {
                 await inventoryPage.productsSort.selectOption('za');
@@ -139,7 +139,7 @@ test.describe('inventory feature', () => {
         );
 
         test(
-            'sort products by price (low to high)',
+            '[TC-006]: sort products by price (low to high)',
             { tag: '@regression' },
             async ({ inventoryPage }) => {
                 await inventoryPage.productsSort.selectOption('lohi');
@@ -157,7 +157,7 @@ test.describe('inventory feature', () => {
         );
 
         test(
-            'sort products by price (high to low)',
+            '[TC-006]: sort products by price (high to low)',
             { tag: '@regression' },
             async ({ inventoryPage }) => {
                 await inventoryPage.productsSort.selectOption('hilo');
