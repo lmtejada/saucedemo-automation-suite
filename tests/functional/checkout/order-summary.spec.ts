@@ -57,7 +57,6 @@ test.describe('checkout feature - step two: Order Summary', () => {
             { tag: ['@smoke', '@regression'] },
             async ({ page, checkoutStepTwoPage }) => {
                 await checkoutStepTwoPage.finishCheckout();
-
                 await expect(page).toHaveURL(/checkout-complete\.html/);
             }
         );
