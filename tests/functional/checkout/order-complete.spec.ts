@@ -1,7 +1,12 @@
 import { expect, test } from '@fixtures/app';
 
+import { StorageStatePaths } from '@enums/app';
+
 test.describe('checkout feature - Order Complete', () => {
     test.describe('functional tests @regression', () => {
+        // This suite exercises the completion page reached from a pre-filled cart, so it opts into the seeded cart state.
+        test.use({ storageState: StorageStatePaths.CART });
+
         test.beforeEach(async ({ checkoutCompletePage }) => {
             await checkoutCompletePage.open();
         });

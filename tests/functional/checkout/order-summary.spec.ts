@@ -1,9 +1,14 @@
 import { expect, test } from '@fixtures/app';
 
+import { StorageStatePaths } from '@enums/app';
+
 import ORDER_DETAILS from '@test-data/static/order-details.json';
 
 test.describe('checkout feature - step two: Order Summary', () => {
     test.describe('functional tests @regression', () => {
+        // This suite exercises the summary of a pre-filled cart, so it opts into the seeded cart state.
+        test.use({ storageState: StorageStatePaths.CART });
+
         test.beforeEach(async ({ checkoutStepTwoPage }) => {
             await checkoutStepTwoPage.open();
         });

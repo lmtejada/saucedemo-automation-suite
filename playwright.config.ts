@@ -91,15 +91,15 @@ export default defineConfig({
             testMatch: /.*auth\.setup\.ts$/,
         },
 
-        /* Setup project - runs before main tests, depend on authentication step */
+        /* Cart setup project - seeds the pre-filled cart storage state, depends on authentication step */
         {
-            name: 'setup',
+            name: 'cart-setup',
             use: {
                 ...devices['Desktop Chrome'],
                 viewport: { width: 1920, height: 1080 },
                 storageState: StorageStatePaths.APP,
             },
-            testMatch: /^(?!.*auth\.setup\.ts$).*\.setup\.ts$/,
+            testMatch: /.*cart\.setup\.ts$/,
             dependencies: ['auth'],
         },
 
@@ -109,27 +109,27 @@ export default defineConfig({
             use: {
                 ...devices['Desktop Chrome'],
                 viewport: { width: 1920, height: 1080 },
-                storageState: StorageStatePaths.CART,
+                storageState: StorageStatePaths.APP,
             },
-            dependencies: ['auth', 'setup'],
+            dependencies: ['auth', 'cart-setup'],
         },
         {
             name: 'firefox',
             use: {
                 ...devices['Desktop Firefox'],
                 viewport: { width: 1920, height: 1080 },
-                storageState: StorageStatePaths.CART,
+                storageState: StorageStatePaths.APP,
             },
-            dependencies: ['auth', 'setup'],
+            dependencies: ['auth', 'cart-setup'],
         },
         {
             name: 'webkit',
             use: {
                 ...devices['Desktop Safari'],
                 viewport: { width: 1920, height: 1080 },
-                storageState: StorageStatePaths.CART,
+                storageState: StorageStatePaths.APP,
             },
-            dependencies: ['auth', 'setup'],
+            dependencies: ['auth', 'cart-setup'],
         },
     ],
 });

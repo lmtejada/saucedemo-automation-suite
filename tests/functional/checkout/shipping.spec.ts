@@ -1,11 +1,15 @@
 import { expect, test } from '@fixtures/app';
 
+import { StorageStatePaths } from '@enums/app';
 import {
     FORM_DEFAULT_DATA,
     VALIDATION_SCENARIOS,
 } from '@test-data/factories/checkout-customer-form.factory';
 
 test.describe('checkout feature - step one: shipping form', () => {
+    // Both suites below rely on cart contents/count, so they opt into the seeded cart state.
+    test.use({ storageState: StorageStatePaths.CART });
+
     test.describe('functional tests @regression', () => {
         test.beforeEach(async ({ checkoutStepOnePage }) => {
             await checkoutStepOnePage.open();

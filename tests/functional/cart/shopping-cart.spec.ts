@@ -1,9 +1,14 @@
 import { expect, test } from '@fixtures/app';
 
+import { StorageStatePaths } from '@enums/app';
+
 import INVENTORY_PRODUCTS from '@test-data/static/products.json';
 
 test.describe('shopping cart feature', () => {
     test.describe('functional tests @regression', () => {
+        // This suite exercises a pre-filled cart, so it opts into the seeded cart state.
+        test.use({ storageState: StorageStatePaths.CART });
+
         test.beforeEach(async ({ cartPage }) => {
             await cartPage.open();
         });
@@ -81,9 +86,8 @@ test.describe('shopping cart feature', () => {
     });
 
     test.describe('test user journey @smoke', () => {
-        test.beforeEach(async ({ cartPage, resetCart }) => {
+        test.beforeEach(async ({ cartPage }) => {
             await cartPage.open();
-            await resetCart();
         });
 
         test(

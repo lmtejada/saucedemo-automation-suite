@@ -5,10 +5,8 @@ import { parsePriceString } from '@utils/common';
 import INVENTORY_PRODUCTS from '@test-data/static/products.json';
 
 test.describe('checkout journey @e2e', () => {
-    test.beforeEach(async ({ page, inventoryPage, resetCart }) => {
+    test.beforeEach(async ({ inventoryPage }) => {
         await inventoryPage.open();
-        await resetCart();
-        await page.reload();
     });
 
     test(
