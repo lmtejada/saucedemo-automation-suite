@@ -331,7 +331,7 @@ Selected inventory item data matches cart view data with 100% data integrity.
 **Notes:**
 Guarantees data model consistency across page boundaries.
 
-**Status:** ⬜ Not run
+**Status:** ✅ Pass
 
 ---
 
@@ -370,7 +370,7 @@ Removing an item inside `/cart.html` immediately removes the DOM node and update
 **Notes:**
 Ensures reactive client-side rendering functions correctly.
 
-**Status:** ⬜ Not run
+**Status:** ✅ Pass
 
 ---
 
@@ -409,7 +409,7 @@ Returning to inventory via "Continue Shopping" preserves active cart state compl
 **Notes:**
 Validates browser history/session storage persistence during navigation.
 
-**Status:** ⬜ Not run
+**Status:** ✅ Pass
 
 ---
 
@@ -536,7 +536,7 @@ User successfully completes multi-step checkout workflow and reaches order confi
 **Notes:**
 Primary critical path revenue-generating journey.
 
-**Status:** ⬜ Not run
+**Status:** ✅ Pass
 
 ---
 
@@ -576,7 +576,7 @@ Application's displayed Total equals Item Total plus Tax calculated across selec
 **Notes:**
 Parses DOM currency strings using floating point assertions.
 
-**Status:** ⬜ Not run
+**Status:** ✅ Pass
 
 ---
 
@@ -590,7 +590,7 @@ _Multi-page, cross-module journeys that exercise the funnel end to end. See also
 **Type:** Functional<br>
 **Priority:** 🔴 High<br>
 **Automated:** Yes<br>
-**Automation reference:** Partially covered — `tests/e2e/checkout-e2e.spec.ts` — Scenario: "complete full checkout purchase flow" (adds 3 items and asserts subtotal only; does not verify tax/total or per-step running totals — full coverage still Planned)<br>
+**Automation reference:** `tests/e2e/checkout-e2e.spec.ts` — Scenario: "[TC-022]: complete full checkout purchase flow" (adds 3 items, asserts subtotal, tax, and total through to order confirmation)<br>
 **Tags:** `@e2e` `@regression`<br>
 
 **Preconditions:**
@@ -621,7 +621,7 @@ A multi-item cart carries correct, consistent totals across every step of the fu
 **Notes:**
 Complements TC-012 (single-item happy path) and TC-014 (isolated step-two math check) by validating totals stay correct across the _entire_ funnel, not just one page, with more than one item.
 
-**Status:** ⬜ Not run
+**Status:** ✅ Pass
 
 ---
 
@@ -631,12 +631,12 @@ Complements TC-012 (single-item happy path) and TC-014 (isolated step-two math c
 **Type:** Functional<br>
 **Priority:** 🟡 Medium<br>
 **Automated:** Yes<br>
-**Automation reference:** Partially covered — `tests/functional/checkout/shipping.spec.ts` (Cancel from step one) and `tests/functional/checkout/order-summary.spec.ts` (Cancel from step two) each test a single cancel in isolation; no test chains cancel→resume→cancel→resume as one journey — full coverage still Planned<br>
+**Automation reference:** `tests/e2e/checkout-e2e.spec.ts` — Scenarios: "[TC-023]: Abandon checkout on Step One & resume" and "[TC-023]: Abandon checkout on Step Two & resume" (full cancel→resume→complete journeys), plus unit-level cancel checks in `tests/functional/checkout/shipping.spec.ts` (step one) and `tests/functional/checkout/order-summary.spec.ts` (step two)<br>
 **Tags:** `@e2e` `@regression`<br>
 
 **Preconditions:**
 
-- User is authenticated as `standard_user` with 2 items already in cart.
+- User is authenticated as `standard_user` with 3 items already in cart.
 
 **Test steps:**
 
@@ -660,9 +660,9 @@ Cancelling checkout at either step returns the user to the expected prior page w
 | Items | Sauce Labs Backpack, Sauce Labs Bike Light |
 
 **Notes:**
-Not currently covered anywhere in the suite — abandoning checkout is a very common real user path and isn't the same code path as TC-011/TC-019 (which cover "Continue Shopping" and browser back, not the in-funnel "Cancel" button).
+A third variant — "[TC-023]: Abandon checkout on Step Two, check filled form data & resume" — is currently `test.skip`'d due to a discovered bug (filled shipping form data is not preserved after aborting checkout); see BUG-002 in the Defect log.
 
-**Status:** ⬜ Not run
+**Status:** ✅ Pass (1 of 3 chained scenarios skipped — known bug, see Defect log)
 
 ---
 
@@ -712,7 +712,7 @@ Guards against a class of bug where checkout totals are computed once and cached
 **Type:** Functional<br>
 **Priority:** 🟡 Medium<br>
 **Automated:** Yes<br>
-**Automation reference:** Planned — `tests/functional/checkout/order-complete.spec.ts` — Scenario: Cart and badge reset after completing an order<br>
+**Automation reference:** Partially covered — `tests/functional/checkout/order-complete.spec.ts` — Scenario: "the Back Home button successfully returns the user to the inventory page" only asserts the URL redirect; it does not yet assert the cart badge/`/cart.html` are actually empty (steps 2–4 below still Planned)<br>
 **Tags:** `@e2e` `@regression`<br>
 
 **Preconditions:**
@@ -740,7 +740,7 @@ N/A — continuation of TC-012's flow.
 **Notes:**
 TC-012 stops verifying at the confirmation message; this covers the remainder of that same journey's lifecycle, which was previously unverified.
 
-**Status:** ⬜ Not run
+**Status:** 🚧 Blocked (partial automation only — cart-empty assertion still missing)
 
 ---
 
@@ -1044,17 +1044,18 @@ Submitting checkout step one with any required field left blank blocks form subm
 
 **Test data:**
 
-| #   | First Name | Last Name | Postal Code | Expected error message           |
-| --- | ---------- | --------- | ----------- | -------------------------------- |
-| 1   | _[blank]_  | Doe       | 90210       | `Error: First Name is required`  |
-| 2   | Jane       | _[blank]_ | 90210       | `Error: Last Name is required`   |
-| 3   | Jane       | Doe       | _[blank]_   | `Error: Postal Code is required` |
-| 4   | _[blank]_  | _[blank]_ | _[blank]_   | `Error: First Name is required`  |
+| #   | First Name | Last Name | Postal Code               | Expected error message                                                  |
+| --- | ---------- | --------- | ------------------------- | ----------------------------------------------------------------------- |
+| 1   | _[blank]_  | Doe       | 90210                     | `Error: First Name is required`                                         |
+| 2   | Jane       | _[blank]_ | 90210                     | `Error: Last Name is required`                                          |
+| 3   | Jane       | Doe       | _[blank]_                 | `Error: Postal Code is required`                                        |
+| 4   | _[blank]_  | _[blank]_ | _[blank]_                 | `Error: First Name is required`                                         |
+| 5   | Jane       | Doe       | `"   "` (whitespace only) | `Error: Postal Code is required` — currently `test.skip`'d, see BUG-001 |
 
 **Notes:**
 Intentionally documented as a single test case data-driven over all four combinations, rather than one TC per field — the automation is a straightforward parametrized loop, the same pattern already used for the negative login scenarios in `login.spec.ts`. A fifth scenario (whitespace-only Postal Code) was added during implementation and is currently `test.skip`'d due to a discovered validation bug — see BUG-001 in the Defect log.
 
-**Status:** ⬜ Not run
+**Status:** ✅ Pass (4 of 5 scenarios — 1 skipped, known bug, see Defect log)
 
 ---
 
@@ -1062,10 +1063,10 @@ Intentionally documented as a single test case data-driven over all four combina
 
 _Bugs found during this test execution cycle. Link to the issue tracker._
 
-| ID      | Title                                                 | Severity  | Steps to reproduce                                                                                                                                                                                                                                                                                   | Linked TC | Status         |
-| ------- | ----------------------------------------------------- | --------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- | -------------- |
-| BUG-001 | Checkout step one accepts whitespace-only Postal Code | 🟡 Medium | 1. Add an item to cart and open `/checkout-step-one.html`. 2. Fill First Name and Last Name with valid values. 3. Enter only spaces (e.g. `"   "`) into Postal Code. 4. Click Continue. Actual: form submits to `/checkout-step-two.html` instead of blocking with `Error: Postal Code is required`. | TC-013    | 🔴 Open        |
-| BUG-002 |                                                       | 🟡 Medium |                                                                                                                                                                                                                                                                                                      | TC-00X    | 🟡 In progress |
+| ID      | Title                                                                  | Severity  | Steps to reproduce                                                                                                                                                                                                                                                                                                                                                  | Linked TC | Status  |
+| ------- | ---------------------------------------------------------------------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- | ------- |
+| BUG-001 | Checkout step one accepts whitespace-only Postal Code                  | 🟡 Medium | 1. Add an item to cart and open `/checkout-step-one.html`. 2. Fill First Name and Last Name with valid values. 3. Enter only spaces (e.g. `"   "`) into Postal Code. 4. Click Continue. Actual: form submits to `/checkout-step-two.html` instead of blocking with `Error: Postal Code is required`.                                                                | TC-013    | 🔴 Open |
+| BUG-002 | Shipping form data not preserved after aborting checkout from step two | 🟡 Medium | 1. Add items to cart, checkout, and fill/submit the step-one shipping form. 2. On `/checkout-step-two.html`, click "Cancel" (returns to `/inventory.html`). 3. Resume checkout via Cart → Checkout, landing back on `/checkout-step-one.html`. Actual: shipping form fields are empty instead of retaining the previously entered First Name/Last Name/Postal Code. | TC-023    | 🔴 Open |
 
 ---
 
