@@ -383,8 +383,10 @@ test.describe('checkout journey @e2e', () => {
                 // Complete Checkout Steps and Check users lands in Checkout Complete Page
                 await cartPage.nav.goToShoppingCart();
                 await cartPage.checkout();
+                await expect(page).toHaveURL(/checkout-step-one\.html/);
                 await checkoutStepOnePage.fillForm(FORM_DEFAULT_DATA);
                 await checkoutStepOnePage.continueCheckout();
+                await expect(page).toHaveURL(/checkout-step-two\.html/);
                 await checkoutStepTwoPage.finishCheckout();
                 await expect(page).toHaveURL(/checkout-complete\.html/);
 
@@ -431,7 +433,7 @@ test.describe('checkout journey @e2e', () => {
                 // eslint-disable-next-line playwright/no-skipped-test
                 test.skip(
                     true,
-                    'Bug found: an empty cart can complete the full checkout funnel for an empty order'
+                    'Bug found: a user can complete the full checkout funnel with an empty order'
                 );
 
                 await resetCart();
@@ -439,10 +441,13 @@ test.describe('checkout journey @e2e', () => {
 
                 // Full steps kept for when the fix lands and this test is unskipped
                 await cartPage.checkout();
+                await expect(page).toHaveURL(/checkout-step-one\.html/);
                 await checkoutStepOnePage.fillForm(FORM_DEFAULT_DATA);
                 await checkoutStepOnePage.continueCheckout();
+                await expect(page).toHaveURL(/checkout-step-two\.html/);
                 await checkoutStepTwoPage.finishCheckout();
 
+                // Checkout process should not be completed on an empty cart
                 await expect(page).not.toHaveURL(/checkout-complete\.html/);
             }
         );

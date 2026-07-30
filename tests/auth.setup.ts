@@ -22,4 +22,39 @@ test.describe('auth setup', () => {
 
         await page.context().storageState({ path: StorageStatePaths.APP });
     });
+
+    test('authenticate as performance_glitch_user', async ({
+        page,
+        loginPage,
+    }) => {
+        await loginPage.open();
+
+        await loginPage.login({
+            username: process.env.PERFORMANCE_USER_NAME!,
+            password: process.env.USER_PASSWORD!,
+        });
+
+        await expect(page).toHaveURL(/inventory\.html/);
+        await expect(page.getByTestId('inventory-container')).toBeVisible();
+
+        await page
+            .context()
+            .storageState({ path: StorageStatePaths.PERFORMANCE_USER });
+    });
+
+    test('authenticate as problem_user', async ({ page, loginPage }) => {
+        await loginPage.open();
+
+        await loginPage.login({
+            username: process.env.PROBLEM_USER_NAME!,
+            password: process.env.USER_PASSWORD!,
+        });
+
+        await expect(page).toHaveURL(/inventory\.html/);
+        await expect(page.getByTestId('inventory-container')).toBeVisible();
+
+        await page
+            .context()
+            .storageState({ path: StorageStatePaths.PROBLEM_USER });
+    });
 });

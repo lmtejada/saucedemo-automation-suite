@@ -1065,7 +1065,7 @@ Intentionally documented as a single test case data-driven over all four combina
 **Type:** Negative<br>
 **Priority:** 🔴 High<br>
 **Automated:** Yes<br>
-**Automation reference:** `tests/functional/cart/shopping-cart.spec.ts` — Scenario: "the Checkout button should not allow completing an order with an empty cart" — currently `test.skip`'d, see BUG-003<br>
+**Automation reference:** `tests/e2e/checkout.e2e.spec.ts` — Scenario: "Checkout should be blocked when the cart is empty" — currently `test.skip`'d, see BUG-003<br>
 **Tags:** `@regression`<br>
 
 **Preconditions:**
@@ -1097,15 +1097,59 @@ Found via exploratory testing, not originally documented in this suite. See BUG-
 
 ---
 
+### TC-028 — `problem_user` can complete the full checkout purchase flow
+
+**Feature:** Full User Journey / Checkout<br>
+**Type:** Functional<br>
+**Priority:** 🟠 High<br>
+**Automated:** Yes<br>
+**Automation reference:** `tests/e2e/multiple-profiles-checkout.e2e.spec.ts` — Scenario: "problem user @e2e" — "[TC-028]: Complete full checkout purchase flow" — currently `test.skip`'d, see BUG-004<br>
+**Tags:** `@e2e`<br>
+
+**Preconditions:**
+
+- User is authenticated as `problem_user` on `/inventory.html`.
+
+**Test steps:**
+
+| Step | Action                                                       | Expected result                                 |
+| ---- | ------------------------------------------------------------ | ----------------------------------------------- |
+| 1    | Add an item to cart and navigate to `/cart.html`             | Cart view displays item                         |
+| 2    | Click "Checkout" button                                      | Navigates to `/checkout-step-one.html`          |
+| 3    | Fill First Name, Last Name, Postal Code and click "Continue" | Navigates to `/checkout-step-two.html` overview |
+| 4    | Click "Finish" button                                        | Navigates to `/checkout-complete.html`          |
+
+**Expected result:**
+`problem_user` can complete the same checkout funnel as `standard_user` (TC-012) — the profile's known quirks (broken images, non-functional sort) shouldn't block the core purchase path.
+
+**Actual result:**
+Filling the shipping form with `{firstName: 'John', lastName: 'Doe', postalCode: '10255'}` results in the form actually holding `{firstName: 'Doe', lastName: '', postalCode: '10255'}` — the Last Name value overwrites First Name, and Last Name is left empty. Clicking "Continue" is blocked by the app's own validation ("Error: Last Name is required"), and the page never advances past `/checkout-step-one.html`.
+
+**Test data:**
+
+| Field       | Value |
+| ----------- | ----- |
+| First Name  | John  |
+| Last Name   | Doe   |
+| Postal Code | 10255 |
+
+**Notes:**
+Found via exploratory testing while extending E2E coverage to non-standard user profiles. See BUG-004 in the Defect log.
+
+**Status:** ⏭ Skipped (known bug)
+
+---
+
 ## Defect log
 
 _Bugs found during this test execution cycle. Link to the issue tracker._
 
-| ID      | Title                                                                  | Severity    | Steps to reproduce                                                                                                                                                                                                                                                                                                                                                  | Linked TC | Status  |
-| ------- | ---------------------------------------------------------------------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- | ------- |
-| BUG-001 | Checkout step one accepts whitespace-only Postal Code                  | 🟡 Medium   | 1. Add an item to cart and open `/checkout-step-one.html`. 2. Fill First Name and Last Name with valid values. 3. Enter only spaces (e.g. `"   "`) into Postal Code. 4. Click Continue. Actual: form submits to `/checkout-step-two.html` instead of blocking with `Error: Postal Code is required`.                                                                | TC-013    | 🔴 Open |
-| BUG-002 | Shipping form data not preserved after aborting checkout from step two | 🟡 Medium   | 1. Add items to cart, checkout, and fill/submit the step-one shipping form. 2. On `/checkout-step-two.html`, click "Cancel" (returns to `/inventory.html`). 3. Resume checkout via Cart → Checkout, landing back on `/checkout-step-one.html`. Actual: shipping form fields are empty instead of retaining the previously entered First Name/Last Name/Postal Code. | TC-023    | 🔴 Open |
-| BUG-003 | Checkout completes successfully with an empty cart ($0.00 order)       | 🔴 Critical | 1. Clear the cart to 0 items and open `/cart.html`. 2. Click "Checkout" (button is enabled). 3. Fill the shipping form and click "Continue" — overview shows `Item total: $0`, `Tax: $0.00`, `Total: $0.00`. 4. Click "Finish". Actual: navigates to `/checkout-complete.html` with "Thank you for your order!" — a full order confirmation for nothing.            | TC-027    | 🔴 Open |
+| ID      | Title                                                                  | Severity    | Steps to reproduce                                                                                                                                                                                                                                                                                                                                                                                                                              | Linked TC | Status  |
+| ------- | ---------------------------------------------------------------------- | ----------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- | ------- |
+| BUG-001 | Checkout step one accepts whitespace-only Postal Code                  | 🟡 Medium   | 1. Add an item to cart and open `/checkout-step-one.html`. 2. Fill First Name and Last Name with valid values. 3. Enter only spaces (e.g. `"   "`) into Postal Code. 4. Click Continue. Actual: form submits to `/checkout-step-two.html` instead of blocking with `Error: Postal Code is required`.                                                                                                                                            | TC-013    | 🔴 Open |
+| BUG-002 | Shipping form data not preserved after aborting checkout from step two | 🟡 Medium   | 1. Add items to cart, checkout, and fill/submit the step-one shipping form. 2. On `/checkout-step-two.html`, click "Cancel" (returns to `/inventory.html`). 3. Resume checkout via Cart → Checkout, landing back on `/checkout-step-one.html`. Actual: shipping form fields are empty instead of retaining the previously entered First Name/Last Name/Postal Code.                                                                             | TC-023    | 🔴 Open |
+| BUG-003 | Checkout completes successfully with an empty cart ($0.00 order)       | 🔴 Critical | 1. Clear the cart to 0 items and open `/cart.html`. 2. Click "Checkout" (button is enabled). 3. Fill the shipping form and click "Continue" — overview shows `Item total: $0`, `Tax: $0.00`, `Total: $0.00`. 4. Click "Finish". Actual: navigates to `/checkout-complete.html` with "Thank you for your order!" — a full order confirmation for nothing.                                                                                        | TC-027    | 🔴 Open |
+| BUG-004 | `problem_user` shipping form mis-fills, blocking checkout entirely     | 🟠 High     | 1. Log in as `problem_user`, add an item to cart, and open `/checkout-step-one.html`. 2. Fill First Name = "John", Last Name = "Doe", Postal Code = "10255". 3. Click "Continue". Actual: the form actually holds `{firstName: "Doe", lastName: "", postalCode: "10255"}` — Last Name's value overwrote First Name and Last Name is empty — so validation blocks with "Error: Last Name is required" and the page never advances past step one. | TC-028    | 🔴 Open |
 
 ---
 

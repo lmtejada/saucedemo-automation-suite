@@ -90,7 +90,7 @@ test.describe('authentication feature', () => {
 
                 const startTime = Date.now();
                 await loginPage.login({
-                    username: 'performance_glitch_user',
+                    username: process.env.PERFORMANCE_USER_NAME!,
                     password: process.env.USER_PASSWORD!,
                 });
                 await page.waitForURL(`${process.env.APP_URL}/inventory.html`);

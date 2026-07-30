@@ -3,6 +3,8 @@ export enum StorageStatePaths {
     APP = '.auth/app/appStorageState.json',
     ADMIN_APP = '.auth/app/adminAppStorageState.json',
     CART = '.auth/app/cartState.json',
+    PERFORMANCE_USER = '.auth/app/performanceUserState.json',
+    PROBLEM_USER = '.auth/app/problemUserState.json',
 }
 
 /** Messages used in the application */
