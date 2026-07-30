@@ -259,7 +259,7 @@ Removing an item directly from inventory resets the action button to "Add to car
 **Type:** Functional<br>
 **Priority:** 🟡 Medium<br>
 **Automated:** Yes<br>
-**Automation reference:** Planned — `tests/functional/inventory/asset-integrity.spec.ts`<br>
+**Automation reference:** `tests/functional/inventory/products.spec.ts` — Scenario: "[TC-029]: product images should be distinct per product" — currently `test.skip`'d, see BUG-005<br>
 **Tags:** `@regression`<br>
 
 **Preconditions:**
@@ -268,17 +268,18 @@ Removing an item directly from inventory resets the action button to "Add to car
 
 **Test steps:**
 
-| Step | Action                                                                  | Expected result                                                               |
-| ---- | ----------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
-| 1    | Query all product image elements on the inventory grid                  | All `<img>` nodes located                                                     |
-| 2    | For each image, read `naturalWidth`/`naturalHeight` via `page.evaluate` | Each image resolves to a real, non-broken resource                            |
-| 3    | Assert `naturalWidth` is greater than 0 for every image                 | No broken image placeholders present                                          |
-| 4    | Repeat the same check while authenticated as `problem_user`             | Known broken asset(s) are explicitly asserted/documented, not silently passed |
+| Step | Action                                                                   | Expected result                                             |
+| ---- | ------------------------------------------------------------------------ | ----------------------------------------------------------- |
+| 1    | Query all product image elements on the inventory grid                   | All `<img>` nodes located                                   |
+| 2    | Read the `src` attribute of each image                                   | Each product resolves to its own distinct image asset       |
+| 3    | Assert the number of distinct `src` values equals the number of products | No two products share the same (or a broken) image          |
+| 4    | Repeat the same check while authenticated as `problem_user`              | Same assertion applied — currently fails, see Actual result |
 
 **Expected result:**
-All product images on the inventory page resolve to valid, non-broken image resources for `standard_user`; the documented broken-image behavior for `problem_user` is explicitly captured as a known difference rather than a silent pass.
+All product images on the inventory page resolve to their own valid, distinct image resource, for every user profile.
 
 **Actual result:**
+For `problem_user`, every product image resolves to the identical placeholder asset (`/assets/sl-404-*.jpg`) regardless of which product it belongs to.
 
 **Test data:**
 
@@ -287,9 +288,89 @@ All product images on the inventory page resolve to valid, non-broken image reso
 | Users | `standard_user`, `problem_user` |
 
 **Notes:**
-`problem_user` is documented to intentionally serve a broken image asset — this test asserts the _difference_ between profiles rather than treating any broken image as a blanket failure.
+Originally scoped to treat `problem_user`'s broken image as an accepted, documented quirk rather than a defect; re-scoped to the `test.skip` + Defect log convention used for BUG-001–004, so it's tracked as an open item rather than silently accepted. See BUG-005 in the Defect log.
 
-**Status:** ⬜ Not run
+**Status:** ⏭ Skipped (known bug)
+
+---
+
+### TC-030 — Sort dropdown reorders products for every user profile
+
+**Feature:** Inventory / Products<br>
+**Type:** Functional<br>
+**Priority:** 🟡 Medium<br>
+**Automated:** Yes<br>
+**Automation reference:** `tests/functional/inventory/products.spec.ts` — Scenario: "[TC-030]: sort dropdown reorders products" — currently `test.skip`'d, see BUG-006<br>
+**Tags:** `@regression`<br>
+
+**Preconditions:**
+
+- User is authenticated on `/inventory.html`.
+
+**Test steps:**
+
+| Step | Action                                                      | Expected result                                             |
+| ---- | ----------------------------------------------------------- | ----------------------------------------------------------- |
+| 1    | Observe the default product order                           | Products are sorted A-Z by default                          |
+| 2    | Select "Name (Z to A)" from the sorting dropdown            | DOM element sequence updates to reverse alphabetical        |
+| 3    | Repeat the same check while authenticated as `problem_user` | Same reordering occurs — currently fails, see Actual result |
+
+**Expected result:**
+Selecting any sorting option reorders the product list on the DOM, regardless of user profile — same behavior already verified for `standard_user` in TC-006.
+
+**Actual result:**
+For `problem_user`, selecting "Name (Z to A)" (or any other sort option) leaves the product list in its original default A-Z order — the dropdown selection has no effect on the DOM.
+
+**Test data:**
+
+| Field | Value          |
+| ----- | -------------- |
+| Users | `problem_user` |
+
+**Notes:**
+Extends TC-006's standard_user coverage to `problem_user`, where the sort feature is broken. See BUG-006 in the Defect log.
+
+**Status:** ⏭ Skipped (known bug)
+
+---
+
+### TC-031 — Remove button on the inventory page removes the item from the cart
+
+**Feature:** Inventory / Products<br>
+**Type:** Functional<br>
+**Priority:** 🟡 Medium<br>
+**Automated:** Yes<br>
+**Automation reference:** `tests/functional/inventory/products.spec.ts` — Scenario: "[TC-031]: Remove button on the inventory page removes the item from the cart" — currently `test.skip`'d, see BUG-007<br>
+**Tags:** `@regression`<br>
+
+**Preconditions:**
+
+- User is authenticated on `/inventory.html` with an empty cart.
+
+**Test steps:**
+
+| Step | Action                                                      | Expected result                                                 |
+| ---- | ----------------------------------------------------------- | --------------------------------------------------------------- |
+| 1    | Click "Add to cart" for a product                           | Cart badge shows `1`, button changes to "Remove"                |
+| 2    | Click "Remove" for the same product                         | Cart badge reverts to `0`, button changes back to "Add to cart" |
+| 3    | Repeat the same check while authenticated as `problem_user` | Same behavior occurs — currently fails, see Actual result       |
+
+**Expected result:**
+Clicking "Remove" on the inventory page removes the item from the cart and reverts the button state, regardless of user profile — same behavior already verified for `standard_user` in TC-008.
+
+**Actual result:**
+For `problem_user`, clicking "Remove" is a no-op: the cart badge count stays unchanged, the button still displays "Remove" instead of reverting, and the item remains genuinely present on `/cart.html`.
+
+**Test data:**
+
+| Field | Value          |
+| ----- | -------------- |
+| Users | `problem_user` |
+
+**Notes:**
+Extends TC-008's standard_user coverage to `problem_user`, where the Remove action is broken. See BUG-007 in the Defect log.
+
+**Status:** ⏭ Skipped (known bug)
 
 ---
 
@@ -502,7 +583,7 @@ Directly automates the 🔴 Critical risk in TEST-PLAN §3 ("Data leakage betwee
 **Type:** Functional<br>
 **Priority:** 🔴 High<br>
 **Automated:** Yes<br>
-**Automation reference:** `tests/e2e/checkout-e2e.spec.ts` — Scenario: "complete full checkout purchase flow"<br>
+**Automation reference:** `tests/e2e/checkout.e2e.spec.ts` — Scenario: "complete full checkout purchase flow"<br>
 **Tags:** `@smoke` `@regression` `@e2e`<br>
 
 **Preconditions:**
@@ -590,7 +671,7 @@ _Multi-page, cross-module journeys that exercise the funnel end to end. See also
 **Type:** Functional<br>
 **Priority:** 🔴 High<br>
 **Automated:** Yes<br>
-**Automation reference:** `tests/e2e/checkout-e2e.spec.ts` — Scenario: "[TC-022]: complete full checkout purchase flow" (adds 3 items, asserts subtotal, tax, and total through to order confirmation)<br>
+**Automation reference:** `tests/e2e/checkout.e2e.spec.ts` — Scenario: "[TC-022]: complete full checkout purchase flow" (adds 3 items, asserts subtotal, tax, and total through to order confirmation)<br>
 **Tags:** `@e2e` `@regression`<br>
 
 **Preconditions:**
@@ -631,7 +712,7 @@ Complements TC-012 (single-item happy path) and TC-014 (isolated step-two math c
 **Type:** Functional<br>
 **Priority:** 🟡 Medium<br>
 **Automated:** Yes<br>
-**Automation reference:** `tests/e2e/checkout-e2e.spec.ts` — Scenarios: "[TC-023]: Abandon checkout on Step One & resume" and "[TC-023]: Abandon checkout on Step Two & resume" (full cancel→resume→complete journeys), plus unit-level cancel checks in `tests/functional/checkout/shipping.spec.ts` (step one) and `tests/functional/checkout/order-summary.spec.ts` (step two)<br>
+**Automation reference:** `tests/e2e/checkout.e2e.spec.ts` — Scenarios: "[TC-023]: Abandon checkout on Step One & resume" and "[TC-023]: Abandon checkout on Step Two & resume" (full cancel→resume→complete journeys), plus unit-level cancel checks in `tests/functional/checkout/shipping.spec.ts` (step one) and `tests/functional/checkout/order-summary.spec.ts` (step two)<br>
 **Tags:** `@e2e` `@regression`<br>
 
 **Preconditions:**
@@ -672,7 +753,7 @@ A third variant — "[TC-023]: Abandon checkout on Step Two, check filled form d
 **Type:** Functional<br>
 **Priority:** 🟡 Medium<br>
 **Automated:** Yes<br>
-**Automation reference:** Planned — `tests/e2e/checkout-e2e.spec.ts` — Scenario: Removing an item mid-funnel updates totals on resumed checkout<br>
+**Automation reference:** `tests/e2e/checkout.e2e.spec.ts` — Scenario: "[TC-024]: Remove item mid-funnel, resume"<br>
 **Tags:** `@e2e` `@regression`<br>
 
 **Preconditions:**
@@ -702,7 +783,7 @@ Totals recalculated after a mid-funnel cart edit are correct and never reflect s
 **Notes:**
 Guards against a class of bug where checkout totals are computed once and cached rather than derived live from current cart state.
 
-**Status:** ⬜ Not run
+**Status:** ✅ Pass
 
 ---
 
@@ -712,7 +793,7 @@ Guards against a class of bug where checkout totals are computed once and cached
 **Type:** Functional<br>
 **Priority:** 🟡 Medium<br>
 **Automated:** Yes<br>
-**Automation reference:** Partially covered — `tests/functional/checkout/order-complete.spec.ts` — Scenario: "the Back Home button successfully returns the user to the inventory page" only asserts the URL redirect; it does not yet assert the cart badge/`/cart.html` are actually empty (steps 2–4 below still Planned)<br>
+**Automation reference:** `tests/e2e/checkout.e2e.spec.ts` — Scenario: "[TC-025]: Post-purchase state reset" (asserts cart badge is 0, `/cart.html` is empty, and a fresh item can be re-added post-purchase). `tests/functional/checkout/order-complete.spec.ts` covers the "Back Home" redirect only.<br>
 **Tags:** `@e2e` `@regression`<br>
 
 **Preconditions:**
@@ -740,7 +821,7 @@ N/A — continuation of TC-012's flow.
 **Notes:**
 TC-012 stops verifying at the confirmation message; this covers the remainder of that same journey's lifecycle, which was previously unverified.
 
-**Status:** 🚧 Blocked (partial automation only — cart-empty assertion still missing)
+**Status:** ✅ Pass
 
 ---
 
@@ -750,7 +831,7 @@ TC-012 stops verifying at the confirmation message; this covers the remainder of
 **Type:** Functional<br>
 **Priority:** 🔴 High<br>
 **Automated:** Yes<br>
-**Automation reference:** Planned — `tests/e2e/checkout-e2e.spec.ts` — Scenario: performance_glitch_user completes full funnel within SLA<br>
+**Automation reference:** `tests/e2e/multiple-profiles-checkout.e2e.spec.ts` — Scenario: "[TC-026]: Full purchase journey for `performance_glitch_user` within SLA"<br>
 **Tags:** `@e2e` `@performance` `@problematic`<br>
 
 **Preconditions:**
@@ -779,9 +860,9 @@ TC-012 stops verifying at the confirmation message; this covers the remainder of
 | Password | `secret_sauce`            |
 
 **Notes:**
-TEST-PLAN §3's Critical mitigation calls for automating "the full happy-path E2E checkout daily" specifically to catch this profile's induced delays; TC-005 only covers this user's _login_ SLA, not the full funnel where a timeout is more likely to actually surface.
+TEST-PLAN §3's Critical mitigation calls for automating "the full happy-path E2E checkout daily" specifically to catch this profile's induced delays; TC-005 only covers this user's _login_ SLA, not the full funnel where a timeout is more likely to actually surface. SLA threshold implemented as 15,000ms for the full funnel.
 
-**Status:** ⬜ Not run
+**Status:** ✅ Pass
 
 ---
 
@@ -1150,6 +1231,9 @@ _Bugs found during this test execution cycle. Link to the issue tracker._
 | BUG-002 | Shipping form data not preserved after aborting checkout from step two | 🟡 Medium   | 1. Add items to cart, checkout, and fill/submit the step-one shipping form. 2. On `/checkout-step-two.html`, click "Cancel" (returns to `/inventory.html`). 3. Resume checkout via Cart → Checkout, landing back on `/checkout-step-one.html`. Actual: shipping form fields are empty instead of retaining the previously entered First Name/Last Name/Postal Code.                                                                             | TC-023    | 🔴 Open |
 | BUG-003 | Checkout completes successfully with an empty cart ($0.00 order)       | 🔴 Critical | 1. Clear the cart to 0 items and open `/cart.html`. 2. Click "Checkout" (button is enabled). 3. Fill the shipping form and click "Continue" — overview shows `Item total: $0`, `Tax: $0.00`, `Total: $0.00`. 4. Click "Finish". Actual: navigates to `/checkout-complete.html` with "Thank you for your order!" — a full order confirmation for nothing.                                                                                        | TC-027    | 🔴 Open |
 | BUG-004 | `problem_user` shipping form mis-fills, blocking checkout entirely     | 🟠 High     | 1. Log in as `problem_user`, add an item to cart, and open `/checkout-step-one.html`. 2. Fill First Name = "John", Last Name = "Doe", Postal Code = "10255". 3. Click "Continue". Actual: the form actually holds `{firstName: "Doe", lastName: "", postalCode: "10255"}` — Last Name's value overwrote First Name and Last Name is empty — so validation blocks with "Error: Last Name is required" and the page never advances past step one. | TC-028    | 🔴 Open |
+| BUG-005 | Product images are identical/broken for `problem_user`                 | 🟡 Medium   | 1. Log in as `problem_user` and open `/inventory.html`. 2. Read the `src` attribute of every product image. Actual: all 6 products resolve to the same placeholder asset (`/assets/sl-404-*.jpg`) instead of their own distinct image.                                                                                                                                                                                                          | TC-018    | 🔴 Open |
+| BUG-006 | Sort dropdown does not reorder products for `problem_user`             | 🟡 Medium   | 1. Log in as `problem_user` and open `/inventory.html`. 2. Select "Name (Z to A)" or any other sort option from the dropdown. Actual: the product list stays in its original default A-Z order — the selection has no effect on the DOM.                                                                                                                                                                                                        | TC-030    | 🔴 Open |
+| BUG-007 | "Remove" button on the inventory page is a no-op for `problem_user`    | 🟡 Medium   | 1. Log in as `problem_user`, open `/inventory.html`, and click "Add to cart" then "Remove" for a product. Actual: the cart badge count stays unchanged, the button still shows "Remove" instead of reverting, and the item remains present on `/cart.html`.                                                                                                                                                                                     | TC-031    | 🔴 Open |
 
 ---
 
@@ -1157,13 +1241,36 @@ _Bugs found during this test execution cycle. Link to the issue tracker._
 
 _For unscripted sessions run alongside the scripted suite._
 
-**Session date:**<br>
-**Tester:**<br>
-**Charter:** _e.g. "Explore the fund transfer flow focusing on edge cases around account limits and concurrent transfers"_<br>
-**Duration:**<br>
-**Coverage notes:**<br>
-**Bugs found:**<br>
-**Areas needing follow-up:**<br>
+### Session 1 — `problem_user` divergence sweep
+
+**Session date:** 2026-07-30<br>
+**Tester:** Laura Tejada<br>
+**Charter:** Explore `problem_user` behavior across the checkout shipping form, product images, the sort dropdown, and the inventory page's Remove button, to identify where this profile diverges from `standard_user`.<br>
+**Duration:** 1h<br>
+
+**Coverage notes:**
+Probed: checkout step-one form fill/submit, product image `src` values on `/inventory.html`, the sort dropdown (name Z-A and price high-low), and the inventory page's "Remove" button. Not yet probed for `problem_user`: any visual or accessibility surface.
+
+**Bugs found:**
+
+| Bug     | Summary                                                                                     | Linked TC |
+| ------- | ------------------------------------------------------------------------------------------- | --------- |
+| BUG-004 | Shipping form mis-fills (Last Name value overwrites First Name), blocking checkout entirely | TC-028    |
+| BUG-005 | Product images are identical/broken — every product resolves to the same placeholder asset  | TC-018    |
+| BUG-006 | Sort dropdown selection has no effect — product order never changes                         | TC-030    |
+| BUG-007 | "Remove" button on the inventory page is a no-op — item stays in cart                       | TC-031    |
+
+**Test cases added as a result of this session:**
+
+- TC-018 — Product image asset integrity verification (re-scoped from an accepted quirk to `test.skip` + Defect log)
+- TC-028 — `problem_user` can complete the full checkout purchase flow
+- TC-030 — Sort dropdown reorders products for every user profile
+- TC-031 — Remove button on the inventory page removes the item from the cart
+
+**Areas needing follow-up:**
+
+- Checkout step-two (order overview/totals) behavior for `problem_user` is unexplored.
+- Whether the broken images affect visual regression baselines (TC-016) for `problem_user` hasn't been assessed.
 
 ---
 

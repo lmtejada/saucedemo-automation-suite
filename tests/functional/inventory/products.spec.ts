@@ -1,5 +1,6 @@
 import { expect, test } from '@fixtures/app';
 
+import { StorageStatePaths } from '@enums/app';
 import { sortProductsByName, sortProductsByPrice } from '@utils/products';
 
 import INVENTORY_PRODUCTS from '@test-data/static/products.json';
@@ -56,16 +57,11 @@ test.describe('inventory feature', () => {
                 const firstProduct = await inventoryPage.getInventoryItemByName(
                     INVENTORY_PRODUCTS[0].name
                 );
-
                 await firstProduct!.addToCart();
 
-                const cartCount = await inventoryPage.nav.getCartCount();
-                const removeButton = firstProduct!.removeFromCartButton;
-
-                expect(firstProduct).toBeDefined();
-                expect(cartCount).toBe(1);
-
-                await expect(removeButton).toBeVisible();
+                await expect(inventoryPage.nav.getCartCount()).resolves.toBe(1);
+                await expect(firstProduct!.addToCartButton).toBeHidden();
+                await expect(firstProduct!.removeFromCartButton).toBeVisible();
             }
         );
 
@@ -78,15 +74,13 @@ test.describe('inventory feature', () => {
                 );
 
                 await firstProduct!.addToCart();
+                await expect(inventoryPage.nav.getCartCount()).resolves.toBe(1);
+
                 await firstProduct!.removeFromCart();
+                await expect(inventoryPage.nav.getCartCount()).resolves.toBe(0);
 
-                const cartCount = await inventoryPage.nav.getCartCount();
-                const addButton = firstProduct!.addToCartButton;
-
-                expect(firstProduct).toBeDefined();
-                expect(cartCount).toBe(0);
-
-                await expect(addButton).toBeVisible();
+                await expect(firstProduct!.addToCartButton).toBeVisible();
+                await expect(firstProduct!.removeFromCartButton).toBeHidden();
             }
         );
 
@@ -171,6 +165,80 @@ test.describe('inventory feature', () => {
                 );
 
                 expect(sortedProducts).toEqual(expectedSortedPrices);
+            }
+        );
+    });
+
+    test.describe('problem_user feature quirks @problematic', () => {
+        test.use({ storageState: StorageStatePaths.PROBLEM_USER });
+
+        test(
+            '[TC-029]: product images should be distinct per product',
+            { tag: '@problematic' },
+            async ({ inventoryPage }) => {
+                // eslint-disable-next-line playwright/no-skipped-test
+                test.skip(
+                    true,
+                    'Bug found: every product image resolves to the same broken asset for problem_user'
+                );
+
+                const imageSrcs =
+                    await inventoryPage.inventoryItems.evaluateAll((elements) =>
+                        elements.map((element) =>
+                            element.querySelector('img')?.getAttribute('src')
+                        )
+                    );
+
+                expect(new Set(imageSrcs).size).toBe(INVENTORY_PRODUCTS.length);
+            }
+        );
+
+        test(
+            '[TC-030]: sort dropdown reorders products',
+            { tag: '@problematic' },
+            async ({ inventoryPage }) => {
+                // eslint-disable-next-line playwright/no-skipped-test
+                test.skip(
+                    true,
+                    'Bug found: selecting any sort option does not reorder the product list for problem_user'
+                );
+
+                await inventoryPage.productsSort.selectOption('za');
+
+                const sortedProducts =
+                    await inventoryPage.listAllInventoryItems();
+
+                const expectedSortedNames = sortProductsByName(
+                    INVENTORY_PRODUCTS,
+                    'za'
+                );
+
+                expect(sortedProducts).toEqual(expectedSortedNames);
+            }
+        );
+
+        test(
+            '[TC-031]: remove button on the inventory page removes the item from the cart',
+            { tag: '@problematic' },
+            async ({ inventoryPage }) => {
+                // eslint-disable-next-line playwright/no-skipped-test
+                test.skip(
+                    true,
+                    'Bug found: clicking Remove on the inventory page does not remove the item from the cart for problem_user'
+                );
+
+                const firstProduct = await inventoryPage.getInventoryItemByName(
+                    INVENTORY_PRODUCTS[0].name
+                );
+
+                await firstProduct!.addToCart();
+                await expect(inventoryPage.nav.getCartCount()).resolves.toBe(1);
+
+                await firstProduct!.removeFromCart();
+                await expect(inventoryPage.nav.getCartCount()).resolves.toBe(0);
+
+                await expect(firstProduct!.addToCartButton).toBeVisible();
+                await expect(firstProduct!.removeFromCartButton).toBeHidden();
             }
         );
     });
