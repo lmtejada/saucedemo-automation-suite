@@ -285,7 +285,7 @@ test.describe('checkout journey @e2e', () => {
         );
     });
 
-    test.describe('boundary testing in purchase journey @e2e', () => {
+    test.describe('negative Test Cases in purchase journey @e2e', () => {
         const productsToAdd = [INVENTORY_PRODUCTS[1], INVENTORY_PRODUCTS[4]];
 
         test.beforeEach(async ({ inventoryPage }) => {

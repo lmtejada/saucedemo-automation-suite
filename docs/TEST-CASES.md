@@ -5,6 +5,54 @@
 **Automated:** Yes / No <br>
 **Test Status:** ⬜ Not run | ✅ Pass | ❌ Fail | ⏭ Skipped | 🚧 Blocked <br>
 
+## Content index
+
+- [1. Authentication Module](#1-authentication-module)
+    - [TC-001 — Successful login with standard_user](#tc-001--successful-login-with-standard_user)
+    - [TC-005 — SLA verification for performance_glitch_user](#tc-005--sla-verification-for-performance_glitch_user)
+    - [TC-017 — Session token persistence across a delayed multi-step workflow](#tc-017--session-token-persistence-across-a-delayed-multi-step-workflow)
+- [2. Inventory / Products Module](#2-inventory--products-module)
+    - [TC-006 — Dynamic product sorting DOM resequencing](#tc-006--dynamic-product-sorting-dom-resequencing)
+    - [TC-007 — Add item to cart state transition](#tc-007--add-item-to-cart-state-transition)
+    - [TC-008 — Remove item directly from inventory view](#tc-008--remove-item-directly-from-inventory-view)
+    - [TC-018 — Product image asset integrity verification](#tc-018--product-image-asset-integrity-verification)
+    - [TC-030 — Sort dropdown reorders products for every user profile](#tc-030--sort-dropdown-reorders-products-for-every-user-profile)
+    - [TC-031 — Remove button on the inventory page removes the item from the cart](#tc-031--remove-button-on-the-inventory-page-removes-the-item-from-the-cart)
+- [3. Shopping Cart Module](#3-shopping-cart-module)
+    - [TC-009 — Data integrity verification between Inventory and Cart](#tc-009--data-integrity-verification-between-inventory-and-cart)
+    - [TC-010 — Dynamic item removal within cart page](#tc-010--dynamic-item-removal-within-cart-page)
+    - [TC-011 — Cart state preservation on "Continue Shopping" navigation](#tc-011--cart-state-preservation-on-continue-shopping-navigation)
+    - [TC-019 — Cart state preservation via browser back-button navigation](#tc-019--cart-state-preservation-via-browser-back-button-navigation)
+    - [TC-020 — Cross-session cart/data isolation between distinct users](#tc-020--cross-session-cartdata-isolation-between-distinct-users)
+- [4. Checkout Workflows](#4-checkout-workflows)
+    - [TC-012 — Complete End-to-End purchase flow](#tc-012--complete-end-to-end-purchase-flow)
+    - [TC-014 — Financial and tax mathematical total calculation](#tc-014--financial-and-tax-mathematical-total-calculation)
+- [5. Full User Journeys (E2E)](#5-full-user-journeys-e2e)
+    - [TC-022 — Multi-item purchase journey with funnel-wide total verification](#tc-022--multi-item-purchase-journey-with-funnel-wide-total-verification)
+    - [TC-023 — Abandon checkout mid-funnel and resume shopping](#tc-023--abandon-checkout-mid-funnel-and-resume-shopping)
+    - [TC-024 — Remove item mid-funnel and resume checkout](#tc-024--remove-item-mid-funnel-and-resume-checkout)
+    - [TC-025 — Post-purchase state reset verification](#tc-025--post-purchase-state-reset-verification)
+    - [TC-026 — Full purchase journey for `performance_glitch_user` within SLA](#tc-026--full-purchase-journey-for-performance_glitch_user-within-sla)
+- [6. Application Sidebar & Lifecycle](#6-application-sidebar--lifecycle)
+    - [TC-015 — Clean application logout and session state reset](#tc-015--clean-application-logout-and-session-state-reset)
+- [7. Visual Regression](#7-visual-regression)
+    - [TC-016 — Baseline visual rendering sanity check](#tc-016--baseline-visual-rendering-sanity-check)
+- [8. Accessibility](#8-accessibility)
+    - [TC-021 — WCAG 2.1 AA compliance audit on core pages](#tc-021--wcag-21-aa-compliance-audit-on-core-pages)
+- [9. Negative Test Cases](#9-negative-test-cases)
+    - [TC-002 — Login attempt with invalid credentials](#tc-002--login-attempt-with-invalid-credentials)
+    - [TC-003 — Direct route bypass without active session](#tc-003--direct-route-bypass-without-active-session)
+    - [TC-004 — Authentication attempt with locked_out_user profile](#tc-004--authentication-attempt-with-locked_out_user-profile)
+    - [TC-013 — Checkout step one required-field validation (all combinations)](#tc-013--checkout-step-one-required-field-validation-all-combinations)
+    - [TC-027 — Checkout should be blocked when the cart is empty](#tc-027--checkout-should-be-blocked-when-the-cart-is-empty)
+    - [TC-028 — `problem_user` can complete the full checkout purchase flow](#tc-028--problem_user-can-complete-the-full-checkout-purchase-flow)
+- [Defect log](#defect-log)
+- [Exploratory testing session log](#exploratory-testing-session-log)
+    - [Session 1 — `problem_user` divergence sweep](#session-1--problem_user-divergence-sweep)
+- [Test execution summary](#test-execution-summary)
+
+---
+
 ## 1. Authentication Module
 
 ### TC-001 — Successful login with standard_user

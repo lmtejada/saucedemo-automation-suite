@@ -8,6 +8,42 @@
 
 ---
 
+## Content index
+
+- [1. Introduction](#1-introduction)
+    - [1.1 Purpose](#11-purpose)
+    - [1.2 Scope](#12-scope)
+- [2. Test objectives](#2-test-objectives)
+- [3. Risk assessment](#3-risk-assessment)
+- [4. Test approach](#4-test-approach)
+    - [4.1 Test levels](#41-test-levels)
+    - [4.2 Test types](#42-test-types)
+    - [4.3 Test design techniques](#43-test-design-techniques)
+- [5. Test environment](#5-test-environment)
+- [6. Test data strategy](#6-test-data-strategy)
+- [7. Automation strategy](#7-automation-strategy)
+    - [7.1 What is automated](#71-what-is-automated)
+    - [7.2 Automation stack](#72-automation-stack)
+    - [7.3 What is tested manually](#73-what-is-tested-manually)
+- [8. CI/CD integration](#8-cicd-integration)
+    - [8.1 Workflow execution matrix](#81-workflow-execution-matrix)
+    - [8.2 Failure handling & reporting architecture](#82-failure-handling--reporting-architecture)
+    - [8.3 Execution script matrix](#83-execution-script-matrix)
+- [9. Roles & responsibilities](#9-roles--responsibilities)
+- [10. Schedule](#10-schedule)
+- [11. Entry and exit criteria](#11-entry-and-exit-criteria)
+    - [Entry criteria](#entry-criteria)
+    - [Exit criteria](#exit-criteria)
+- [12. Defect management](#12-defect-management)
+    - [12.1 Severity definitions](#121-severity-definitions)
+    - [12.2 Tracking workflow & template](#122-tracking-workflow--template)
+- [13. Risks & assumptions](#13-risks--assumptions)
+    - [13.1 Assumptions](#131-assumptions)
+    - [13.2 Real-World Automation Risks](#132-real-world-automation-risks)
+- [14. Sign-off](#14-sign-off)
+
+---
+
 ## 1. Introduction
 
 ### 1.1 Purpose
