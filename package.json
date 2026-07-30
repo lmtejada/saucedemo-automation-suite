@@ -8,6 +8,7 @@
         "lint": "eslint .",
         "lint:fix": "eslint . --fix",
         "format": "prettier --write .",
+        "typecheck": "tsc --noEmit",
         "test": "playwright test --grep-invert \"@visual|@problematic\"",
         "test:chromium": "playwright test --project=chromium --grep-invert @problematic",
         "test:firefox": "playwright test --project=firefox --grep-invert @problematic",

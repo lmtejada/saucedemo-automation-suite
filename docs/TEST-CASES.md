@@ -743,7 +743,7 @@ Cancelling checkout at either step returns the user to the expected prior page w
 **Notes:**
 A third variant — "[TC-023]: Abandon checkout on Step Two, check filled form data & resume" — is currently `test.skip`'d due to a discovered bug (filled shipping form data is not preserved after aborting checkout); see BUG-002 in the Defect log.
 
-**Status:** ✅ Pass (1 of 3 chained scenarios skipped — known bug, see Defect log)
+**Status:** ✅ Pass (2 of 3 scenarios — 1 skipped, known bug, see Defect log)
 
 ---
 
