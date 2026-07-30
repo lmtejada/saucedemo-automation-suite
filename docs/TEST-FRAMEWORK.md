@@ -19,9 +19,8 @@
     - [9.1 Multi-user-profile test coverage](#91-multi-user-profile-test-coverage)
     - [9.2 Known-bug capture pattern (`test.skip` convention)](#92-known-bug-capture-pattern-testskip-convention)
     - [9.3 Assert immediately, not eventually](#93-assert-immediately-not-eventually)
-    - [9.4 Verify before documenting — no guessing at bug behavior](#94-verify-before-documenting--no-guessing-at-bug-behavior)
-    - [9.5 Verify tooling changes with a fresh process, not the IDE](#95-verify-tooling-changes-with-a-fresh-process-not-the-ide)
-    - [9.6 Decision log](#96-decision-log)
+    - [9.4 Verify tooling changes with a fresh process, not the IDE](#95-verify-tooling-changes-with-a-fresh-process-not-the-ide)
+    - [9.5 Decision log](#96-decision-log)
 
 ---
 
@@ -209,29 +208,15 @@ The notable rules enforced in `eslint.config.mts`, and why each exists (not an e
 
 **How to apply:** `await expect(page).toHaveURL(/next-step\.html/);` right after any navigation-triggering action, even in "happy path" tests. See `tests/functional/checkout/shipping.spec.ts` for the convention.
 
-### 9.4 Verify before documenting — no guessing at bug behavior
-
-**Rule:** Before writing a test or a TC entry that asserts _specific_ buggy behavior (exact field values, exact URLs, exact counts), reproduce it first with a throwaway diagnostic script — log the actual values, read them, then delete the script. Don't infer what a bug probably does from a hunch or from the bug's title.
-
-**Why:** The checkout mis-fill bug (BUG-004) is a good example of why this matters — the failure looked like "the Finish button times out," but the actual defect was two steps upstream (`fillForm` silently misassigning field values). Guessing at the mechanism from the symptom would have produced a wrong or misleading repro in the Defect log.
-
-**How to apply:** Write a standalone `.spec.ts` with `console.log` on the values you need, run it with `npx playwright test <file> --project=chromium --reporter=list`, read the output, then `rm` the file. Never leave diagnostic scripts committed.
-
-### 9.5 Verify tooling changes with a fresh process, not the IDE
+### 9.4 Verify tooling changes with a fresh process, not the IDE
 
 **Rule:** After editing `tsconfig.json` or `eslint.config.mts` (new path aliases, new lint rules), verify with a freshly-spawned CLI process (`npx eslint <file>`, `npx tsc --noEmit`) — don't trust the VS Code ESLint/TS language server's live diagnostics for the verdict.
 
 **Why:** Hit this twice. The editor's language server caches `tsconfig.json` path resolution and doesn't reliably pick up newly-added aliases without an explicit restart ("ESLint: Restart ESLint Server"). This produced confusing false-positive/false-negative diagnostics in the editor (e.g., a newly-added `@utils/*` alias briefly misclassified as an unresolved external import) that a fresh `npx eslint` process didn't reproduce at all.
 
-### 9.6 Decision log
+### 9.4 Decision log
 
 Append-only. One entry per non-obvious call, newest first.
-
-**2026-07-30 — Cart-page coverage for `problem_user` left as-is**
-Investigated whether `problem_user` needed cart-page-specific tests (remove-from-cart, Continue Shopping, Checkout button) after finding the _inventory_-page Remove button broken (BUG-007). Verified with a diagnostic script that all three cart-page behaviors work correctly for this profile. Per §9.1, no tests were added — the divergence doesn't exist here, so pairing a test would just duplicate `standard_user` coverage with no signal.
-
-**2026-07-30 — Uniform `test.skip` + Defect log treatment for `problem_user` quirks**
-Chose not to distinguish "real bugs" from "permanent persona-design quirks" in how they're captured (§9.2). Applies retroactively to TC-018 (images), and to TC-030 (sort) and TC-031 (remove button).
 
 **2026-07-21 — Path alias `@fixtures/**` ordered after third-party packages, not before**
 `import-x/order`'s `pathGroups` originally put `@fixtures/**` imports _before_ `external` packages like `@playwright/test`. Changed to `position: 'after'` so real third-party libraries always sort first within the external block, with internal fixture aliases following — matches the intuition that "framework/library imports lead, app-internal imports follow."
