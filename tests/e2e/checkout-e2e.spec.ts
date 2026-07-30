@@ -49,9 +49,9 @@ test.describe('checkout journey @e2e', () => {
                 await checkoutStepTwoPage.finishCheckout();
 
                 // Assert Final Confirmation
-                expect(await checkoutCompletePage.getHeaderText()).toBe(
-                    'Thank you for your order!'
-                );
+                await expect(
+                    checkoutCompletePage.getHeaderText()
+                ).resolves.toBe('Thank you for your order!');
             }
         );
     });
@@ -107,9 +107,9 @@ test.describe('checkout journey @e2e', () => {
                 await checkoutStepTwoPage.finishCheckout();
 
                 // Assert Final Confirmation
-                expect(await checkoutCompletePage.getHeaderText()).toBe(
-                    'Thank you for your order!'
-                );
+                await expect(
+                    checkoutCompletePage.getHeaderText()
+                ).resolves.toBe('Thank you for your order!');
             }
         );
 
@@ -136,7 +136,7 @@ test.describe('checkout journey @e2e', () => {
                 await checkoutStepOnePage.cancelCheckout();
                 const cartItemsAfter = await cartPage.listAllCartItems();
                 expect(cartItemsAfter).toEqual(cartItemsBefore);
-                expect(await cartPage.getCartItemsCount()).toBe(3);
+                await expect(cartPage.getCartItemsCount()).resolves.toBe(3);
 
                 // Resume checkout from Cart Page
                 await cartPage.checkout();
@@ -158,9 +158,9 @@ test.describe('checkout journey @e2e', () => {
                 await checkoutStepTwoPage.finishCheckout();
 
                 // Assert Final Confirmation
-                expect(await checkoutCompletePage.getHeaderText()).toBe(
-                    'Thank you for your order!'
-                );
+                await expect(
+                    checkoutCompletePage.getHeaderText()
+                ).resolves.toBe('Thank you for your order!');
             }
         );
 
@@ -192,7 +192,7 @@ test.describe('checkout journey @e2e', () => {
                 await cartPage.nav.goToShoppingCart();
                 const cartItemsAfter = await cartPage.listAllCartItems();
                 expect(cartItemsAfter).toEqual(cartItemsBefore);
-                expect(await cartPage.getCartItemsCount()).toBe(3);
+                await expect(cartPage.getCartItemsCount()).resolves.toBe(3);
 
                 // Resume checkout from Cart Page
                 await cartPage.checkout();
@@ -214,9 +214,9 @@ test.describe('checkout journey @e2e', () => {
                 await checkoutStepTwoPage.finishCheckout();
 
                 // Assert Final Confirmation
-                expect(await checkoutCompletePage.getHeaderText()).toBe(
-                    'Thank you for your order!'
-                );
+                await expect(
+                    checkoutCompletePage.getHeaderText()
+                ).resolves.toBe('Thank you for your order!');
             }
         );
 
@@ -254,7 +254,7 @@ test.describe('checkout journey @e2e', () => {
                 await cartPage.nav.goToShoppingCart();
                 const cartItemsAfter = await cartPage.listAllCartItems();
                 expect(cartItemsAfter).toEqual(cartItemsBefore);
-                expect(await cartPage.getCartItemsCount()).toBe(3);
+                await expect(cartPage.getCartItemsCount()).resolves.toBe(3);
 
                 // Resume checkout from Cart Page
                 await cartPage.checkout();
@@ -278,9 +278,172 @@ test.describe('checkout journey @e2e', () => {
                 await checkoutStepTwoPage.finishCheckout();
 
                 // Assert Final Confirmation
-                expect(await checkoutCompletePage.getHeaderText()).toBe(
-                    'Thank you for your order!'
+                await expect(
+                    checkoutCompletePage.getHeaderText()
+                ).resolves.toBe('Thank you for your order!');
+            }
+        );
+    });
+
+    test.describe('boundary testing in purchase journey @e2e', () => {
+        const productsToAdd = [INVENTORY_PRODUCTS[1], INVENTORY_PRODUCTS[4]];
+
+        test.beforeEach(async ({ inventoryPage }) => {
+            // Add products on inventory page
+            await inventoryPage.open();
+
+            for (const product of productsToAdd) {
+                const inventoryItem =
+                    await inventoryPage.getInventoryItemByName(product.name);
+                await inventoryItem!.addToCart();
+            }
+        });
+
+        test(
+            '[TC-024]: Remove item mid-funnel, resume',
+            { tag: '@e2e' },
+            async ({
+                cartPage,
+                checkoutStepOnePage,
+                checkoutStepTwoPage,
+                checkoutCompletePage,
+            }) => {
+                // Navigate through Cart
+                await cartPage.nav.goToShoppingCart();
+                const cartItemsBefore = await cartPage.listAllCartItems();
+                await expect(cartPage.nav.getCartCount()).resolves.toBe(
+                    productsToAdd.length
                 );
+                await cartPage.checkout();
+
+                // Cancel Checkout and check Cart Items state
+                await checkoutStepOnePage.cancelCheckout();
+                const cartItemsAfter = await cartPage.listAllCartItems();
+                expect(cartItemsAfter).toEqual(cartItemsBefore);
+                await expect(cartPage.nav.getCartCount()).resolves.toBe(
+                    productsToAdd.length
+                );
+
+                // Remove Item from Cart
+                const cartItemToRemove = await cartPage.getCartItemByName(
+                    productsToAdd[0].name
+                );
+                await cartItemToRemove?.removeFromCart();
+
+                // Check Cart State after Item removal
+                const newCartItems = await cartPage.listAllCartItems();
+                expect(newCartItems).toEqual(cartItemsBefore.toSpliced(0, 1));
+                await expect(cartPage.nav.getCartCount()).resolves.toBe(
+                    newCartItems.length
+                );
+
+                // Resume Checkout process
+                await cartPage.checkout();
+
+                // Complete Step One Form
+                await checkoutStepOnePage.fillForm(FORM_DEFAULT_DATA);
+                await checkoutStepOnePage.continueCheckout();
+
+                // Verify Step Two Calculations & Finish
+                const orderSummaryDetails =
+                    await checkoutStepTwoPage.getOrderSummaryDetails();
+                const expectedTotals =
+                    checkoutStepTwoPage.calculateTotalsFromItems(newCartItems);
+
+                expect(parsePriceString(orderSummaryDetails.subtotal)).toBe(
+                    expectedTotals.subtotal
+                );
+                expect(parsePriceString(orderSummaryDetails.tax)).toBe(
+                    expectedTotals.tax
+                );
+                expect(parsePriceString(orderSummaryDetails.total)).toBe(
+                    expectedTotals.total
+                );
+
+                await checkoutStepTwoPage.finishCheckout();
+
+                // Assert Final Confirmation
+                await expect(
+                    checkoutCompletePage.getHeaderText()
+                ).resolves.toBe('Thank you for your order!');
+            }
+        );
+
+        test(
+            '[TC-025]: Post-purchase state reset',
+            { tag: '@e2e' },
+            async ({
+                page,
+                inventoryPage,
+                cartPage,
+                checkoutStepOnePage,
+                checkoutStepTwoPage,
+                checkoutCompletePage,
+            }) => {
+                // Complete Checkout Steps and Check users lands in Checkout Complete Page
+                await cartPage.nav.goToShoppingCart();
+                await cartPage.checkout();
+                await checkoutStepOnePage.fillForm(FORM_DEFAULT_DATA);
+                await checkoutStepOnePage.continueCheckout();
+                await checkoutStepTwoPage.finishCheckout();
+                await expect(page).toHaveURL(/checkout-complete\.html/);
+
+                // Navigate to Home page and check cart badge status
+                await checkoutCompletePage.navigateToHome();
+                await expect(page).toHaveURL(/inventory\.html/);
+                await expect(inventoryPage.nav.getCartCount()).resolves.toBe(0);
+
+                // Navigate to Cart and check Cart page displays no items
+                await inventoryPage.nav.goToShoppingCart();
+                const cartItems = await cartPage.listAllCartItems();
+                expect(cartItems).toEqual([]);
+                await cartPage.continueShopping();
+
+                // Start a fresh cart session
+                const inventoryItem =
+                    await inventoryPage.getInventoryItemByName(
+                        INVENTORY_PRODUCTS[1].name
+                    );
+                await inventoryItem!.addToCart();
+
+                // Check the cart contains only the new Item added
+                await inventoryPage.nav.goToShoppingCart();
+                const newCartItems = await cartPage.listAllCartItems();
+                expect(newCartItems).toEqual([
+                    {
+                        ...INVENTORY_PRODUCTS[1],
+                        quantity: 1,
+                    },
+                ]);
+            }
+        );
+
+        test(
+            '[TC-027]: Checkout should be blocked when the cart is empty',
+            { tag: '@e2e' },
+            async ({
+                page,
+                cartPage,
+                checkoutStepOnePage,
+                checkoutStepTwoPage,
+                resetCart,
+            }) => {
+                // eslint-disable-next-line playwright/no-skipped-test
+                test.skip(
+                    true,
+                    'Bug found: an empty cart can complete the full checkout funnel for an empty order'
+                );
+
+                await resetCart();
+                await cartPage.open();
+
+                // Full steps kept for when the fix lands and this test is unskipped
+                await cartPage.checkout();
+                await checkoutStepOnePage.fillForm(FORM_DEFAULT_DATA);
+                await checkoutStepOnePage.continueCheckout();
+                await checkoutStepTwoPage.finishCheckout();
+
+                await expect(page).not.toHaveURL(/checkout-complete\.html/);
             }
         );
     });

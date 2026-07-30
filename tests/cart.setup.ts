@@ -18,7 +18,7 @@ test.describe('cart setup', () => {
 
         await cartPage.open();
         await expect(page).toHaveURL(/cart\.html/);
-        expect(await cartPage.getCartItemsCount()).toBe(3);
+        await expect(cartPage.getCartItemsCount()).resolves.toBe(3);
 
         // Save storage state to a JSON file
         await page.context().storageState({ path: StorageStatePaths.CART });

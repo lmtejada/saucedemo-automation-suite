@@ -43,9 +43,9 @@ test.describe('checkout feature - step one: shipping form', () => {
             { tag: ['@smoke', '@regression'] },
             async ({ page, checkoutStepOnePage }) => {
                 await checkoutStepOnePage.fillForm(FORM_DEFAULT_DATA);
-                expect(await checkoutStepOnePage.getFilledFormData()).toEqual(
-                    FORM_DEFAULT_DATA
-                );
+                await expect(
+                    checkoutStepOnePage.getFilledFormData()
+                ).resolves.toEqual(FORM_DEFAULT_DATA);
 
                 await checkoutStepOnePage.continueCheckout();
                 await expect(page).toHaveURL(/checkout-step-two\.html/);

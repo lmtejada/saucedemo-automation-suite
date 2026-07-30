@@ -20,13 +20,15 @@ test.describe('checkout feature - Order Complete', () => {
                     checkoutCompletePage.nav.headingTitle
                 ).toBeVisible();
 
-                expect(await checkoutCompletePage.nav.getHeadingTitle()).toBe(
-                    'Checkout: Complete!'
-                );
-                expect(await checkoutCompletePage.getHeaderText()).toBe(
-                    'Thank you for your order!'
-                );
-                expect(await checkoutCompletePage.getContentText()).toBe(
+                await expect(
+                    checkoutCompletePage.nav.getHeadingTitle()
+                ).resolves.toBe('Checkout: Complete!');
+                await expect(
+                    checkoutCompletePage.getHeaderText()
+                ).resolves.toBe('Thank you for your order!');
+                await expect(
+                    checkoutCompletePage.getContentText()
+                ).resolves.toBe(
                     'Your order has been dispatched, and will arrive just as fast as the pony can get there!'
                 );
 

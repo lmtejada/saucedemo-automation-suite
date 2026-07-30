@@ -1059,14 +1059,53 @@ Intentionally documented as a single test case data-driven over all four combina
 
 ---
 
+### TC-027 — Checkout should be blocked when the cart is empty
+
+**Feature:** Shopping Cart / Checkout Workflows<br>
+**Type:** Negative<br>
+**Priority:** 🔴 High<br>
+**Automated:** Yes<br>
+**Automation reference:** `tests/functional/cart/shopping-cart.spec.ts` — Scenario: "the Checkout button should not allow completing an order with an empty cart" — currently `test.skip`'d, see BUG-003<br>
+**Tags:** `@regression`<br>
+
+**Preconditions:**
+
+- User is authenticated as `standard_user` with an empty cart (cart contents cleared).
+
+**Test steps:**
+
+| Step | Action                                                                                        | Expected result                                                             |
+| ---- | --------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
+| 1    | Navigate to `/cart.html` with 0 items in cart                                                 | Cart page displays no items                                                 |
+| 2    | Observe the "Checkout" button                                                                 | Button is disabled or hidden, since there is nothing to purchase            |
+| 3    | If clicked anyway, attempt to complete the full funnel (fill shipping form, continue, finish) | Funnel is blocked at some step; user cannot reach `/checkout-complete.html` |
+
+**Expected result:**
+A user cannot complete a purchase — or reach an order confirmation — with zero items in their cart.
+
+**Actual result:**
+The "Checkout" button is visible and enabled with an empty cart. Clicking it proceeds through the entire funnel: the shipping form accepts input, the overview page displays `Item total: $0`, `Tax: $0.00`, `Total: $0.00`, and clicking "Finish" reaches `/checkout-complete.html` with "Thank you for your order!" — a fully "completed" $0.00 order for nothing.
+
+**Test data:**
+
+N/A — reproduced with the default seeded cart cleared to 0 items.
+
+**Notes:**
+Found via exploratory testing, not originally documented in this suite. See BUG-003 in the Defect log.
+
+**Status:** ⏭ Skipped (known bug)
+
+---
+
 ## Defect log
 
 _Bugs found during this test execution cycle. Link to the issue tracker._
 
-| ID      | Title                                                                  | Severity  | Steps to reproduce                                                                                                                                                                                                                                                                                                                                                  | Linked TC | Status  |
-| ------- | ---------------------------------------------------------------------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- | ------- |
-| BUG-001 | Checkout step one accepts whitespace-only Postal Code                  | 🟡 Medium | 1. Add an item to cart and open `/checkout-step-one.html`. 2. Fill First Name and Last Name with valid values. 3. Enter only spaces (e.g. `"   "`) into Postal Code. 4. Click Continue. Actual: form submits to `/checkout-step-two.html` instead of blocking with `Error: Postal Code is required`.                                                                | TC-013    | 🔴 Open |
-| BUG-002 | Shipping form data not preserved after aborting checkout from step two | 🟡 Medium | 1. Add items to cart, checkout, and fill/submit the step-one shipping form. 2. On `/checkout-step-two.html`, click "Cancel" (returns to `/inventory.html`). 3. Resume checkout via Cart → Checkout, landing back on `/checkout-step-one.html`. Actual: shipping form fields are empty instead of retaining the previously entered First Name/Last Name/Postal Code. | TC-023    | 🔴 Open |
+| ID      | Title                                                                  | Severity    | Steps to reproduce                                                                                                                                                                                                                                                                                                                                                  | Linked TC | Status  |
+| ------- | ---------------------------------------------------------------------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- | ------- |
+| BUG-001 | Checkout step one accepts whitespace-only Postal Code                  | 🟡 Medium   | 1. Add an item to cart and open `/checkout-step-one.html`. 2. Fill First Name and Last Name with valid values. 3. Enter only spaces (e.g. `"   "`) into Postal Code. 4. Click Continue. Actual: form submits to `/checkout-step-two.html` instead of blocking with `Error: Postal Code is required`.                                                                | TC-013    | 🔴 Open |
+| BUG-002 | Shipping form data not preserved after aborting checkout from step two | 🟡 Medium   | 1. Add items to cart, checkout, and fill/submit the step-one shipping form. 2. On `/checkout-step-two.html`, click "Cancel" (returns to `/inventory.html`). 3. Resume checkout via Cart → Checkout, landing back on `/checkout-step-one.html`. Actual: shipping form fields are empty instead of retaining the previously entered First Name/Last Name/Postal Code. | TC-023    | 🔴 Open |
+| BUG-003 | Checkout completes successfully with an empty cart ($0.00 order)       | 🔴 Critical | 1. Clear the cart to 0 items and open `/cart.html`. 2. Click "Checkout" (button is enabled). 3. Fill the shipping form and click "Continue" — overview shows `Item total: $0`, `Tax: $0.00`, `Total: $0.00`. 4. Click "Finish". Actual: navigates to `/checkout-complete.html` with "Thank you for your order!" — a full order confirmation for nothing.            | TC-027    | 🔴 Open |
 
 ---
 
