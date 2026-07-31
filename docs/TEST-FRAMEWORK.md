@@ -19,8 +19,8 @@
     - [9.1 Multi-user-profile test coverage](#91-multi-user-profile-test-coverage)
     - [9.2 Known-bug capture pattern (`test.skip` convention)](#92-known-bug-capture-pattern-testskip-convention)
     - [9.3 Assert immediately, not eventually](#93-assert-immediately-not-eventually)
-    - [9.4 Verify tooling changes with a fresh process, not the IDE](#95-verify-tooling-changes-with-a-fresh-process-not-the-ide)
-    - [9.5 Decision log](#96-decision-log)
+    - [9.4 Verify tooling changes with a fresh process, not the IDE](#94-verify-tooling-changes-with-a-fresh-process-not-the-ide)
+- [10. Decision log](#10-decision-log)
 
 ---
 
@@ -214,7 +214,9 @@ The notable rules enforced in `eslint.config.mts`, and why each exists (not an e
 
 **Why:** Hit this twice. The editor's language server caches `tsconfig.json` path resolution and doesn't reliably pick up newly-added aliases without an explicit restart ("ESLint: Restart ESLint Server"). This produced confusing false-positive/false-negative diagnostics in the editor (e.g., a newly-added `@utils/*` alias briefly misclassified as an unresolved external import) that a fresh `npx eslint` process didn't reproduce at all.
 
-### 9.4 Decision log
+---
+
+## 10. Decision log
 
 Append-only. One entry per non-obvious call, newest first.
 

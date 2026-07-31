@@ -307,7 +307,7 @@ Removing an item directly from inventory resets the action button to "Add to car
 **Type:** Functional<br>
 **Priority:** 🟡 Medium<br>
 **Automated:** Yes<br>
-**Automation reference:** `tests/functional/inventory/products.spec.ts` — Scenario: "[TC-029]: product images should be distinct per product" — currently `test.skip`'d, see BUG-005<br>
+**Automation reference:** `tests/functional/inventory/products.spec.ts` — Scenario: "[TC-018]: product images should be distinct per product" — currently `test.skip`'d, see BUG-005<br>
 **Tags:** `@regression`<br>
 
 **Preconditions:**

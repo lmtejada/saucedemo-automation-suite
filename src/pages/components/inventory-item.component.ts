@@ -19,7 +19,7 @@ export class InventoryItemComponent {
         this.itemName = rootLocator.getByTestId('inventory-item-name');
         this.itemDescription = rootLocator.getByTestId('inventory-item-desc');
         this.itemPrice = rootLocator.getByTestId('inventory-item-price');
-        this.itemImage = this.itemImage = rootLocator.getByRole('img');
+        this.itemImage = rootLocator.getByRole('img');
         this.addToCartButton = rootLocator.getByRole('button', {
             name: `Add to cart`,
         });
@@ -43,6 +43,15 @@ export class InventoryItemComponent {
                 (await this.itemPrice.innerText()).replace('$', '')
             ),
         };
+    }
+
+    /**
+     * Retrieves the image source of the inventory item.
+     *
+     * @returns {Promise<string | null>} Resolves with the image src attribute.
+     */
+    async getImageSrc(): Promise<string | null> {
+        return await this.itemImage.getAttribute('src');
     }
 
     /**

@@ -102,8 +102,7 @@ test.describe('inventory feature', () => {
             async ({ inventoryPage }) => {
                 await inventoryPage.productsSort.selectOption('az');
 
-                const sortedProducts =
-                    await inventoryPage.listAllInventoryItems();
+                const sortedProducts = await inventoryPage.listAllItemsData();
 
                 const expectedSortedNames = sortProductsByName(
                     INVENTORY_PRODUCTS,
@@ -120,8 +119,7 @@ test.describe('inventory feature', () => {
             async ({ inventoryPage }) => {
                 await inventoryPage.productsSort.selectOption('za');
 
-                const sortedProducts =
-                    await inventoryPage.listAllInventoryItems();
+                const sortedProducts = await inventoryPage.listAllItemsData();
 
                 const expectedSortedNames = sortProductsByName(
                     INVENTORY_PRODUCTS,
@@ -138,8 +136,7 @@ test.describe('inventory feature', () => {
             async ({ inventoryPage }) => {
                 await inventoryPage.productsSort.selectOption('lohi');
 
-                const sortedProducts =
-                    await inventoryPage.listAllInventoryItems();
+                const sortedProducts = await inventoryPage.listAllItemsData();
 
                 const expectedSortedPrices = sortProductsByPrice(
                     INVENTORY_PRODUCTS,
@@ -156,8 +153,7 @@ test.describe('inventory feature', () => {
             async ({ inventoryPage }) => {
                 await inventoryPage.productsSort.selectOption('hilo');
 
-                const sortedProducts =
-                    await inventoryPage.listAllInventoryItems();
+                const sortedProducts = await inventoryPage.listAllItemsData();
 
                 const expectedSortedPrices = sortProductsByPrice(
                     INVENTORY_PRODUCTS,
@@ -173,7 +169,7 @@ test.describe('inventory feature', () => {
         test.use({ storageState: StorageStatePaths.PROBLEM_USER });
 
         test(
-            '[TC-029]: product images should be distinct per product',
+            '[TC-018]: product images should be distinct per product',
             { tag: '@problematic' },
             async ({ inventoryPage }) => {
                 // eslint-disable-next-line playwright/no-skipped-test
@@ -182,12 +178,10 @@ test.describe('inventory feature', () => {
                     'Bug found: every product image resolves to the same broken asset for problem_user'
                 );
 
-                const imageSrcs =
-                    await inventoryPage.inventoryItems.evaluateAll((elements) =>
-                        elements.map((element) =>
-                            element.querySelector('img')?.getAttribute('src')
-                        )
-                    );
+                const items = await inventoryPage.listAllInventoryItems();
+                const imageSrcs = await Promise.all(
+                    items.map((item) => item.getImageSrc())
+                );
 
                 expect(new Set(imageSrcs).size).toBe(INVENTORY_PRODUCTS.length);
             }
@@ -205,8 +199,7 @@ test.describe('inventory feature', () => {
 
                 await inventoryPage.productsSort.selectOption('za');
 
-                const sortedProducts =
-                    await inventoryPage.listAllInventoryItems();
+                const sortedProducts = await inventoryPage.listAllItemsData();
 
                 const expectedSortedNames = sortProductsByName(
                     INVENTORY_PRODUCTS,
