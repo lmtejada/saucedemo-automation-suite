@@ -6,7 +6,9 @@ export class NavigationComponent {
     public readonly shoppingCartLink: Locator;
     public readonly cartCount: Locator;
     public readonly menuButton: Locator;
+    public readonly allItemsLink: Locator;
     public readonly logoutLink: Locator;
+    public readonly resetAppStateLink: Locator;
 
     constructor(page: Page) {
         this.page = page;
@@ -17,7 +19,11 @@ export class NavigationComponent {
         this.shoppingCartLink = page.getByTestId('shopping-cart-link');
         this.cartCount = page.getByTestId('shopping-cart-badge');
         this.menuButton = page.getByRole('button', { name: 'Open Menu' });
+        this.allItemsLink = page.getByRole('link', { name: 'All Items' });
         this.logoutLink = page.getByRole('link', { name: 'Logout' });
+        this.resetAppStateLink = page.getByRole('link', {
+            name: 'Reset App State',
+        });
     }
 
     // ==================== Actions ====================
@@ -57,6 +63,26 @@ export class NavigationComponent {
      */
     async goToShoppingCart(): Promise<void> {
         await this.shoppingCartLink.click();
+    }
+
+    /**
+     * Clicks the "All Items" link in the navigation menu.
+     *
+     * @returns {Promise<void>} Resolves once the link is clicked.
+     */
+    async goToAllItems(): Promise<void> {
+        await this.openMenu();
+        await this.allItemsLink.click();
+    }
+
+    /**
+     * Clicks the "Reset App State" link in the navigation menu.
+     *
+     * @returns {Promise<void>} Resolves once the link is clicked.
+     */
+    async resetAppState(): Promise<void> {
+        await this.openMenu();
+        await this.resetAppStateLink.click();
     }
 
     /**

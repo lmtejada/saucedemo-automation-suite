@@ -33,8 +33,10 @@
     - [TC-024 — Remove item mid-funnel and resume checkout](#tc-024--remove-item-mid-funnel-and-resume-checkout)
     - [TC-025 — Post-purchase state reset verification](#tc-025--post-purchase-state-reset-verification)
     - [TC-026 — Full purchase journey for `performance_glitch_user` within SLA](#tc-026--full-purchase-journey-for-performance_glitch_user-within-sla)
-- [6. Application Sidebar & Lifecycle](#6-application-sidebar--lifecycle)
+- [6. Navigation Menu](#6-navigation-menu)
     - [TC-015 — Clean application logout and session state reset](#tc-015--clean-application-logout-and-session-state-reset)
+    - [TC-032 — "All Items" link returns the user to the inventory page](#tc-032--all-items-link-returns-the-user-to-the-inventory-page)
+    - [TC-033 — "Reset App State" restores inventory items to their original state](#tc-033--reset-app-state-restores-inventory-items-to-their-original-state)
 - [7. Visual Regression](#7-visual-regression)
     - [TC-016 — Baseline visual rendering sanity check](#tc-016--baseline-visual-rendering-sanity-check)
 - [8. Accessibility](#8-accessibility)
@@ -914,15 +916,15 @@ TEST-PLAN §3's Critical mitigation calls for automating "the full happy-path E2
 
 ---
 
-## 6. Application Sidebar & Lifecycle
+## 6. Navigation Menu
 
 ### TC-015 — Clean application logout and session state reset
 
-**Feature:** Lifecycle<br>
+**Feature:** Navigation Menu<br>
 **Type:** Functional<br>
 **Priority:** 🔴 High<br>
 **Automated:** Yes<br>
-**Automation reference:** Planned — `tests/functional/lifecycle/logout.spec.ts` — no logout test currently exists anywhere in the suite<br>
+**Automation reference:** `tests/functional/navigation/sidebar-menu.spec.ts` — Scenario: "clean application logout and session state reset"<br>
 **Tags:** `@smoke` `@regression`<br>
 
 **Preconditions:**
@@ -951,7 +953,83 @@ Logging out via sidebar menu clears application session state and prevents unaut
 **Notes:**
 Ensures authentication guards and storage resets trigger cleanly.
 
-**Status:** ⬜ Not run
+**Status:** ✅ Pass
+
+---
+
+### TC-032 — "All Items" link returns the user to the inventory page
+
+**Feature:** Navigation Menu<br>
+**Type:** Functional<br>
+**Priority:** 🟡 Medium<br>
+**Automated:** Yes<br>
+**Automation reference:** `tests/functional/navigation/sidebar-menu.spec.ts` — Scenario: "All Items link returns the user to the inventory page"<br>
+**Tags:** `@smoke` `@regression`<br>
+
+**Preconditions:**
+
+- User authenticated and active on a page other than `/inventory.html` (e.g. `/cart.html`).
+
+**Test steps:**
+
+| Step | Action                                                  | Expected result                                   |
+| ---- | ------------------------------------------------------- | ------------------------------------------------- |
+| 1    | Click hamburger sidebar icon (`#react-burger-menu-btn`) | Sidebar menu slides open                          |
+| 2    | Click "All Items" sidebar link                          | Browser navigates to `/inventory.html`            |
+| 3    | Observe the page content                                | Product grid renders with the full inventory list |
+
+**Expected result:**
+The "All Items" sidebar link returns the user to the inventory page and renders the product list from any other page in the app.
+
+**Actual result:**
+
+**Test data:**
+
+| Field  | Value     |
+| ------ | --------- |
+| Action | All Items |
+
+**Status:** ✅ Pass
+
+---
+
+### TC-033 — "Reset App State" restores inventory items to their original state
+
+**Feature:** Navigation Menu<br>
+**Type:** Functional<br>
+**Priority:** 🟡 Medium<br>
+**Automated:** Yes<br>
+**Automation reference:** `tests/functional/navigation/sidebar-menu.spec.ts` — Scenario: "Reset App State restores inventory items to their pristine Add to cart state" — currently `test.skip`'d, see BUG-008<br>
+**Tags:** `@regression`<br>
+
+**Preconditions:**
+
+- User authenticated and active on `/inventory.html` with at least one item added to the cart.
+
+**Test steps:**
+
+| Step | Action                                                  | Expected result                                                           |
+| ---- | ------------------------------------------------------- | ------------------------------------------------------------------------- |
+| 1    | Add a product to the cart from the inventory page       | Cart badge shows `1`; the product's button reads "Remove"                 |
+| 2    | Click hamburger sidebar icon (`#react-burger-menu-btn`) | Sidebar menu slides open                                                  |
+| 3    | Click "Reset App State" sidebar link                    | Cart badge clears; every inventory item's button reverts to "Add to cart" |
+
+**Expected result:**
+"Reset App State" returns the inventory page to its pristine state: an empty cart and every product button reading "Add to cart".
+
+**Actual result:**
+The cart badge does clear to empty, but the previously-added product's button stays on "Remove" instead of reverting to "Add to cart" — the button state and the actual (empty) cart contents disagree until the page is reloaded.
+
+**Test data:**
+
+| Field  | Value           |
+| ------ | --------------- |
+| Action | Reset App State |
+
+**Notes:**
+Found while adding navigation menu coverage. See BUG-008 in the Defect log.
+
+**Status:** ⏭ Skipped (known bug)
 
 ---
 
@@ -1273,15 +1351,16 @@ Found via exploratory testing while extending E2E coverage to non-standard user 
 
 _Bugs found during this test execution cycle. Link to the issue tracker._
 
-| ID      | Title                                                                  | Severity    | Steps to reproduce                                                                                                                                                                                                                                                                                                                                                                                                                              | Linked TC | Status  |
-| ------- | ---------------------------------------------------------------------- | ----------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- | ------- |
-| BUG-001 | Checkout step one accepts whitespace-only Postal Code                  | 🟡 Medium   | 1. Add an item to cart and open `/checkout-step-one.html`. 2. Fill First Name and Last Name with valid values. 3. Enter only spaces (e.g. `"   "`) into Postal Code. 4. Click Continue. Actual: form submits to `/checkout-step-two.html` instead of blocking with `Error: Postal Code is required`.                                                                                                                                            | TC-013    | 🔴 Open |
-| BUG-002 | Shipping form data not preserved after aborting checkout from step two | 🟡 Medium   | 1. Add items to cart, checkout, and fill/submit the step-one shipping form. 2. On `/checkout-step-two.html`, click "Cancel" (returns to `/inventory.html`). 3. Resume checkout via Cart → Checkout, landing back on `/checkout-step-one.html`. Actual: shipping form fields are empty instead of retaining the previously entered First Name/Last Name/Postal Code.                                                                             | TC-023    | 🔴 Open |
-| BUG-003 | Checkout completes successfully with an empty cart ($0.00 order)       | 🔴 Critical | 1. Clear the cart to 0 items and open `/cart.html`. 2. Click "Checkout" (button is enabled). 3. Fill the shipping form and click "Continue" — overview shows `Item total: $0`, `Tax: $0.00`, `Total: $0.00`. 4. Click "Finish". Actual: navigates to `/checkout-complete.html` with "Thank you for your order!" — a full order confirmation for nothing.                                                                                        | TC-027    | 🔴 Open |
-| BUG-004 | `problem_user` shipping form mis-fills, blocking checkout entirely     | 🟠 High     | 1. Log in as `problem_user`, add an item to cart, and open `/checkout-step-one.html`. 2. Fill First Name = "John", Last Name = "Doe", Postal Code = "10255". 3. Click "Continue". Actual: the form actually holds `{firstName: "Doe", lastName: "", postalCode: "10255"}` — Last Name's value overwrote First Name and Last Name is empty — so validation blocks with "Error: Last Name is required" and the page never advances past step one. | TC-028    | 🔴 Open |
-| BUG-005 | Product images are identical/broken for `problem_user`                 | 🟡 Medium   | 1. Log in as `problem_user` and open `/inventory.html`. 2. Read the `src` attribute of every product image. Actual: all 6 products resolve to the same placeholder asset (`/assets/sl-404-*.jpg`) instead of their own distinct image.                                                                                                                                                                                                          | TC-018    | 🔴 Open |
-| BUG-006 | Sort dropdown does not reorder products for `problem_user`             | 🟡 Medium   | 1. Log in as `problem_user` and open `/inventory.html`. 2. Select "Name (Z to A)" or any other sort option from the dropdown. Actual: the product list stays in its original default A-Z order — the selection has no effect on the DOM.                                                                                                                                                                                                        | TC-030    | 🔴 Open |
-| BUG-007 | "Remove" button on the inventory page is a no-op for `problem_user`    | 🟡 Medium   | 1. Log in as `problem_user`, open `/inventory.html`, and click "Add to cart" then "Remove" for a product. Actual: the cart badge count stays unchanged, the button still shows "Remove" instead of reverting, and the item remains present on `/cart.html`.                                                                                                                                                                                     | TC-031    | 🔴 Open |
+| ID      | Title                                                                      | Severity    | Steps to reproduce                                                                                                                                                                                                                                                                                                                                                                                                                              | Linked TC | Status  |
+| ------- | -------------------------------------------------------------------------- | ----------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- | ------- |
+| BUG-001 | Checkout step one accepts whitespace-only Postal Code                      | 🟡 Medium   | 1. Add an item to cart and open `/checkout-step-one.html`. 2. Fill First Name and Last Name with valid values. 3. Enter only spaces (e.g. `"   "`) into Postal Code. 4. Click Continue. Actual: form submits to `/checkout-step-two.html` instead of blocking with `Error: Postal Code is required`.                                                                                                                                            | TC-013    | 🔴 Open |
+| BUG-002 | Shipping form data not preserved after aborting checkout from step two     | 🟡 Medium   | 1. Add items to cart, checkout, and fill/submit the step-one shipping form. 2. On `/checkout-step-two.html`, click "Cancel" (returns to `/inventory.html`). 3. Resume checkout via Cart → Checkout, landing back on `/checkout-step-one.html`. Actual: shipping form fields are empty instead of retaining the previously entered First Name/Last Name/Postal Code.                                                                             | TC-023    | 🔴 Open |
+| BUG-003 | Checkout completes successfully with an empty cart ($0.00 order)           | 🔴 Critical | 1. Clear the cart to 0 items and open `/cart.html`. 2. Click "Checkout" (button is enabled). 3. Fill the shipping form and click "Continue" — overview shows `Item total: $0`, `Tax: $0.00`, `Total: $0.00`. 4. Click "Finish". Actual: navigates to `/checkout-complete.html` with "Thank you for your order!" — a full order confirmation for nothing.                                                                                        | TC-027    | 🔴 Open |
+| BUG-004 | `problem_user` shipping form mis-fills, blocking checkout entirely         | 🟠 High     | 1. Log in as `problem_user`, add an item to cart, and open `/checkout-step-one.html`. 2. Fill First Name = "John", Last Name = "Doe", Postal Code = "10255". 3. Click "Continue". Actual: the form actually holds `{firstName: "Doe", lastName: "", postalCode: "10255"}` — Last Name's value overwrote First Name and Last Name is empty — so validation blocks with "Error: Last Name is required" and the page never advances past step one. | TC-028    | 🔴 Open |
+| BUG-005 | Product images are identical/broken for `problem_user`                     | 🟡 Medium   | 1. Log in as `problem_user` and open `/inventory.html`. 2. Read the `src` attribute of every product image. Actual: all 6 products resolve to the same placeholder asset (`/assets/sl-404-*.jpg`) instead of their own distinct image.                                                                                                                                                                                                          | TC-018    | 🔴 Open |
+| BUG-006 | Sort dropdown does not reorder products for `problem_user`                 | 🟡 Medium   | 1. Log in as `problem_user` and open `/inventory.html`. 2. Select "Name (Z to A)" or any other sort option from the dropdown. Actual: the product list stays in its original default A-Z order — the selection has no effect on the DOM.                                                                                                                                                                                                        | TC-030    | 🔴 Open |
+| BUG-007 | "Remove" button on the inventory page is a no-op for `problem_user`        | 🟡 Medium   | 1. Log in as `problem_user`, open `/inventory.html`, and click "Add to cart" then "Remove" for a product. Actual: the cart badge count stays unchanged, the button still shows "Remove" instead of reverting, and the item remains present on `/cart.html`.                                                                                                                                                                                     | TC-031    | 🔴 Open |
+| BUG-008 | "Reset App State" clears the cart but leaves inventory buttons on "Remove" | 🟡 Medium   | 1. Open `/inventory.html` and click "Add to cart" for a product (button now reads "Remove", cart badge shows `1`). 2. Open the hamburger sidebar menu and click "Reset App State". Actual: the cart badge clears to empty (the cart itself is correctly reset), but the product's button stays on "Remove" instead of reverting to "Add to cart" — button state and actual cart contents disagree until the page is reloaded.                   | TC-033    | 🔴 Open |
 
 ---
 
