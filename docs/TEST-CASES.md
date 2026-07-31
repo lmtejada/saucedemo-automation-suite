@@ -23,7 +23,6 @@
     - [TC-010 — Dynamic item removal within cart page](#tc-010--dynamic-item-removal-within-cart-page)
     - [TC-011 — Cart state preservation on "Continue Shopping" navigation](#tc-011--cart-state-preservation-on-continue-shopping-navigation)
     - [TC-019 — Cart state preservation via browser back-button navigation](#tc-019--cart-state-preservation-via-browser-back-button-navigation)
-    - [TC-020 — Cross-session cart/data isolation between distinct users](#tc-020--cross-session-cartdata-isolation-between-distinct-users)
 - [4. Checkout Workflows](#4-checkout-workflows)
     - [TC-012 — Complete End-to-End purchase flow](#tc-012--complete-end-to-end-purchase-flow)
     - [TC-014 — Financial and tax mathematical total calculation](#tc-014--financial-and-tax-mathematical-total-calculation)
@@ -44,6 +43,7 @@
 - [9. Negative Test Cases](#9-negative-test-cases)
     - [TC-002 — Login attempt with invalid credentials](#tc-002--login-attempt-with-invalid-credentials)
     - [TC-003 — Direct route bypass without active session](#tc-003--direct-route-bypass-without-active-session)
+    - [TC-034 — Authenticated session guard on the login route](#tc-034--authenticated-session-guard-on-the-login-route)
     - [TC-004 — Authentication attempt with locked_out_user profile](#tc-004--authentication-attempt-with-locked_out_user-profile)
     - [TC-013 — Checkout step one required-field validation (all combinations)](#tc-013--checkout-step-one-required-field-validation-all-combinations)
     - [TC-027 — Checkout should be blocked when the cart is empty](#tc-027--checkout-should-be-blocked-when-the-cart-is-empty)
@@ -51,6 +51,7 @@
 - [Defect log](#defect-log)
 - [Exploratory testing session log](#exploratory-testing-session-log)
     - [Session 1 — `problem_user` divergence sweep](#session-1--problem_user-divergence-sweep)
+    - [Session 2 — Cross-tab session guard investigation](#session-2--cross-tab-session-guard-investigation)
 - [Test execution summary](#test-execution-summary)
 
 ---
@@ -582,47 +583,6 @@ Passes on `chromium` (the project's regression/CI target). Flaky on `firefox`/`w
 Complements TC-011, which covers the "Continue Shopping" button path; this covers the native back-button/history path called out separately in TEST-PLAN §3. Uses the seeded `CART` storage state (3 items) rather than a single retained item.
 
 **Status:** ✅ Pass (chromium)
-
----
-
-### TC-020 — Cross-session cart/data isolation between distinct users
-
-**Feature:** Shopping Cart / Security<br>
-**Type:** Negative / Security<br>
-**Priority:** 🔴 High<br>
-**Automated:** Yes<br>
-**Automation reference:** Planned — `tests/functional/cart/session-isolation.spec.ts`<br>
-**Tags:** `@security` `@regression`<br>
-
-**Preconditions:**
-
-- Two distinct browser contexts are available, each capable of an independent authenticated session.
-
-**Test steps:**
-
-| Step | Action                                                      | Expected result                             |
-| ---- | ----------------------------------------------------------- | ------------------------------------------- |
-| 1    | Log in as User A (`standard_user`) in browser context 1     | Authenticated, lands on `/inventory.html`   |
-| 2    | Add 2 items to cart as User A                               | Cart badge shows `2`                        |
-| 3    | Log in as User B in a completely separate browser context 2 | Authenticated, lands on `/inventory.html`   |
-| 4    | Observe cart badge and `/cart.html` contents for User B     | Cart badge shows `0` and cart page is empty |
-
-**Expected result:**
-No cart items, badge counts, or session data leak from User A's session into User B's independently authenticated session.
-
-**Actual result:**
-
-**Test data:**
-
-| Field  | Value                                       |
-| ------ | ------------------------------------------- |
-| User A | `standard_user` (browser context 1)         |
-| User B | second distinct account (browser context 2) |
-
-**Notes:**
-Directly automates the 🔴 Critical risk in TEST-PLAN §3 ("Data leakage between active sessions"). Implement using Playwright's multi-`BrowserContext` orchestration (per TEST-PLAN §7.2) rather than logout/login in the same context, so storage-level isolation is verified, not just UI state.
-
-**Status:** ⬜ Not run
 
 ---
 
@@ -1185,6 +1145,47 @@ Unauthenticated direct navigation to protected route is blocked and redirected t
 
 ---
 
+### TC-034 — Authenticated session guard on the login route
+
+**Feature:** Authentication / Security<br>
+**Type:** Negative<br>
+**Priority:** 🟡 Medium<br>
+**Automated:** Yes<br>
+**Automation reference:** `tests/functional/auth/login.spec.ts` — Scenario: "[TC-034]: an authenticated user revisiting the login route is redirected back to their session instead of re-shown the login form" — currently `test.skip`'d, see BUG-009<br>
+**Tags:** `@regression` `@security`<br>
+
+**Preconditions:**
+
+- Browser context has zero cookies, `localStorage`, or `sessionStorage` tokens.
+
+**Test steps:**
+
+| Step | Action                                                                      | Expected result                                                               |
+| ---- | --------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| 1    | Log in as `standard_user`                                                   | Authenticated, `session-username` cookie set, lands on `/inventory.html`      |
+| 2    | With the session cookie still valid, navigate back to the login route (`/`) | User is redirected straight to `/inventory.html`; the login form is not shown |
+| 3    | Assert the login button is not present                                      | `#login-button` is hidden — currently fails, see Actual result                |
+
+**Expected result:**
+Visiting the public login route while already holding a valid session redirects the user straight back to their authenticated session, rather than re-presenting a login form capable of overwriting that session.
+
+**Actual result:**
+The login route renders the login form unconditionally — there is no check for an existing valid `session-username` cookie before rendering it. Confirmed manually: with a freshly issued, unexpired session cookie in place, reloading `/` still shows a fully interactive login form instead of redirecting to `/inventory.html`. Submitting new credentials there silently overwrites the existing session cookie with no warning.
+
+**Test data:**
+
+| Field    | Value           |
+| -------- | --------------- |
+| Username | `standard_user` |
+| Password | `secret_sauce`  |
+
+**Notes:**
+Found while investigating a manually observed cross-tab behavior where logging in as a different user in one tab appeared to affect another tab's session. Traced to `session-username` being a plain shared cookie and the login route never checking for an existing session before rendering the form. Note that session/cookie continuity across tabs and windows of the same profile is itself expected, standard browser behavior, not a defect — separate browser contexts (distinct profiles/incognito) do get their own isolated cookie jar and `localStorage`, but that isolation is a browser/Playwright guarantee, not something SauceDemo implements. The gap here is narrowly that the login route doesn't recognize an existing valid session before letting it be overwritten. See BUG-009 in the Defect log, and TEST-PLAN §3 for the underlying cookie/localStorage/sessionStorage sharing rationale.
+
+**Status:** ⏭ Skipped (known bug)
+
+---
+
 ### TC-004 — Authentication attempt with locked_out_user profile
 
 **Feature:** Authentication<br>
@@ -1362,6 +1363,7 @@ _Bugs found during this test execution cycle. Link to the issue tracker._
 | BUG-006 | Sort dropdown does not reorder products for `problem_user`                 | 🟡 Medium   | 1. Log in as `problem_user` and open `/inventory.html`. 2. Select "Name (Z to A)" or any other sort option from the dropdown. Actual: the product list stays in its original default A-Z order — the selection has no effect on the DOM.                                                                                                                                                                                                        | TC-030    | 🔴 Open |
 | BUG-007 | "Remove" button on the inventory page is a no-op for `problem_user`        | 🟡 Medium   | 1. Log in as `problem_user`, open `/inventory.html`, and click "Add to cart" then "Remove" for a product. Actual: the cart badge count stays unchanged, the button still shows "Remove" instead of reverting, and the item remains present on `/cart.html`.                                                                                                                                                                                     | TC-031    | 🔴 Open |
 | BUG-008 | "Reset App State" clears the cart but leaves inventory buttons on "Remove" | 🟡 Medium   | 1. Open `/inventory.html` and click "Add to cart" for a product (button now reads "Remove", cart badge shows `1`). 2. Open the hamburger sidebar menu and click "Reset App State". Actual: the cart badge clears to empty (the cart itself is correctly reset), but the product's button stays on "Remove" instead of reverting to "Add to cart" — button state and actual cart contents disagree until the page is reloaded.                   | TC-033    | 🔴 Open |
+| BUG-009 | Login route has no authenticated-session guard                             | 🟡 Medium   | 1. Log in as `standard_user` (sets the `session-username` cookie). 2. With that cookie still valid and unexpired, navigate back to `/`. Actual: the login form renders and accepts submission unconditionally regardless of the existing valid session — there is no check/redirect for an already-authenticated session, so submitting new credentials silently overwrites the existing session cookie with no warning.                        | TC-034    | 🔴 Open |
 
 ---
 
@@ -1399,6 +1401,32 @@ Probed: checkout step-one form fill/submit, product image `src` values on `/inve
 
 - Checkout step-two (order overview/totals) behavior for `problem_user` is unexplored.
 - Whether the broken images affect visual regression baselines (TC-016) for `problem_user` hasn't been assessed.
+
+---
+
+### Session 2 — Cross-tab session guard investigation
+
+**Session date:** 2026-07-31<br>
+**Tester:** Laura Tejada<br>
+**Charter:** Manually open SauceDemo in multiple tabs of the same browser profile, log in as different users, and understand what's actually expected versus what's broken.<br>
+**Duration:** 30m<br>
+
+**Coverage notes:**
+Opened two tabs against the same browser profile and logged in as different users, prompted by an initial manual observation that account/cart state appeared shared between tabs. Confirmed that session/cookie continuity across tabs and windows of the same browser profile is expected, standard behavior — not a defect — since cookies and `localStorage` are scoped to the origin, not to any tab or window. The one narrow, genuine gap found: the login route never checks for an existing valid `session-username` cookie before rendering the form — verified with a scripted check that, with a valid unexpired session cookie present, reloading `/` still shows a fully interactive login form instead of redirecting to `/inventory.html`. An earlier working theory that this also caused a demonstrable cross-tab cart "bleed" was investigated and dropped: SauceDemo has no per-user data model at all (no backend, no accounts) — `cart-contents` is simply a single global value for the whole browser profile by design, so treating shared cart state as a consequence of the login-guard bug overstated the finding. The login-guard gap itself stands on its own, independent of that cart question.
+
+**Bugs found:**
+
+| Bug     | Summary                                        | Linked TC |
+| ------- | ---------------------------------------------- | --------- |
+| BUG-009 | Login route has no authenticated-session guard | TC-034    |
+
+**Test cases added as a result of this session:**
+
+- TC-034 — Authenticated session guard on the login route
+
+**Areas needing follow-up:**
+
+- None — this session's finding (the login-route guard gap) is self-contained and fully covered by TC-034.
 
 ---
 

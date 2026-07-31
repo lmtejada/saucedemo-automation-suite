@@ -1,9 +1,9 @@
 # Test Plan — Swag Labs E-commerce Demo
 
-**Version:** 1.0
+**Version:** 1.1
 **Status:** In Review
 **Author:** Laura Tejada
-**Last updated:** 20.07.2026
+**Last updated:** 31.07.2026
 **Reviewed by:** Claude
 
 ---
@@ -41,6 +41,7 @@
     - [13.1 Assumptions](#131-assumptions)
     - [13.2 Real-World Automation Risks](#132-real-world-automation-risks)
 - [14. Sign-off](#14-sign-off)
+- [15. Version history](#15-version-history)
 
 ---
 
@@ -73,15 +74,25 @@ This document defines the quality approach for the project SauceDemo: the standa
 
 ## 3. Risk assessment
 
-| Risk                                                                                                                                              | Likelihood | Impact | Priority    | Mitigation                                                                                                                               |
-| :------------------------------------------------------------------------------------------------------------------------------------------------ | :--------- | :----- | :---------- | :--------------------------------------------------------------------------------------------------------------------------------------- |
-| **E2E checkout funnel fails silently** <br>_(Users cannot complete a purchase due to button click failures or state drops)_                       | Medium     | High   | 🔴 Critical | Automate the full happy-path E2E checkout; implement explicit waits on checkout page transitions.                                        |
-| **Data leakage between active sessions** <br>_(A user can view or alter the shopping cart contents of a completely different user)_               | Low        | High   | 🔴 Critical | Automate a multi-context test: log in as User A, add items, log out, log in as User B, and assert the cart is empty.                     |
-| **Flaky or broken third-party static assets** <br>_(Product images or styling elements fail to load, showing broken links or incorrect graphics)_ | High       | Medium | 🟡 Medium   | Implement automated asset verification tests checking that image `src` paths resolve properly and don't default to broken templates.     |
-| **State loss during workflow navigation** <br>_(Cart items disappear when navigating via the browser back button or using 'Continue Shopping')_   | Medium     | Medium | 🟡 Medium   | Design specific state-preservation assertions across all multi-page transition paths (Inventory → Cart → Checkout).                      |
-| **Session tokens expire prematurely** <br>_(Logged-in sessions drop abruptly mid-transaction, forcing users back to the login page)_              | Low        | Medium | 🟡 Medium   | Create a localized regression test to assert cookie/session token persistence across delayed automated steps.                            |
-| **Flaky locator elements due to dynamic text** <br>_(Test suite breaks frequently because selectors rely on mutable UI text labels)_              | High       | Low    | 🟢 Low      | Enforce a strict selector hierarchy within the Page Object Model, prioritizing standard test attributes (`data-test`) over text strings. |
-| **Missing required input validation** <br>_(Checkout forms allow missing first name, last name, or postal code parameters)_                       | Medium     | Low    | 🟢 Low      | Implement data-driven negative test cases validating that every required form field triggers an explicit error state.                    |
+| Risk                                                                                                                                                                                                 | Likelihood | Impact                                                  | Priority    | Mitigation                                                                                                                                |
+| :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :--------- | :------------------------------------------------------ | :---------- | :---------------------------------------------------------------------------------------------------------------------------------------- |
+| **E2E checkout funnel fails silently** <br>_(Users cannot complete a purchase due to button click failures or state drops)_                                                                          | Medium     | High                                                    | 🔴 Critical | Automate the full happy-path E2E checkout; implement explicit waits on checkout page transitions.                                         |
+| **Flaky or broken third-party static assets** <br>_(Product images or styling elements fail to load, showing broken links or incorrect graphics)_                                                    | High       | Medium                                                  | 🟡 Medium   | Implement automated asset verification tests checking that image `src` paths resolve properly and don't default to broken templates.      |
+| **State loss during workflow navigation** <br>_(Cart items disappear when navigating via the browser back button or using 'Continue Shopping')_                                                      | Medium     | Medium                                                  | 🟡 Medium   | Design specific state-preservation assertions across all multi-page transition paths (Inventory → Cart → Checkout).                       |
+| **Session tokens expire prematurely** <br>_(Logged-in sessions drop abruptly mid-transaction, forcing users back to the login page)_                                                                 | Low        | Medium                                                  | 🟡 Medium   | Create a localized regression test to assert cookie/session token persistence across delayed automated steps.                             |
+| **Login route lacks an authenticated-session guard** <br>_(Revisiting the login page while already authenticated silently allows a new login to overwrite the active session, with no confirmation)_ | Low        | Low<br>_(no backend or real accounts — see note below)_ | 🟡 Medium   | Automated via TC-034 (`tests/functional/auth/login.spec.ts`); currently `test.skip`'d pending a fix — tracked as BUG-009. See note below. |
+| **Flaky locator elements due to dynamic text** <br>_(Test suite breaks frequently because selectors rely on mutable UI text labels)_                                                                 | High       | Low                                                     | 🟢 Low      | Enforce a strict selector hierarchy within the Page Object Model, prioritizing standard test attributes (`data-test`) over text strings.  |
+| **Missing required input validation** <br>_(Checkout forms allow missing first name, last name, or postal code parameters)_                                                                          | Medium     | Low                                                     | 🟢 Low      | Implement data-driven negative test cases validating that every required form field triggers an explicit error state.                     |
+
+**Note — cross-tab/cross-user session behavior: what's a risk here and what isn't.**
+
+This area is easy to misdiagnose from manual testing alone (open two tabs, log in as different users, cart state looks "shared" — that alone doesn't tell you which of several things is actually happening). SauceDemo authenticates via a plain `session-username` cookie and keeps cart contents in `localStorage["cart-contents"]`, both scoped to the origin (`www.saucedemo.com`) and the browser profile, not to a tab or window. Given that:
+
+- **Cross-user cart/session isolation was considered as a candidate risk and deliberately excluded, not just left uncovered.** SauceDemo has no backend and no per-account data model at all — `standard_user` / `problem_user` / etc. are login credentials that toggle which UI quirks render, not real tenant boundaries. There was never a product intention that switching identity should isolate or reset cart data, so a test asserting "cart should be empty after logging in as someone else" would be checking a requirement the app never had. This is why Impact is rated Low above, and why there's no dedicated isolation test case in this suite (an earlier draft of one, TC-020, was removed for exactly this reason).
+- **A new tab or window of the same profile inheriting the current session automatically is expected, standard browser behavior** — cookies and `localStorage` are shared browser-wide per origin by design, for every site, not something SauceDemo does differently. It is not a risk and needs no mitigation.
+- Separate browser contexts (distinct profiles, incognito windows) do get their own isolated cookie jar and `localStorage`, but that isolation is a guarantee of the browser/automation tool itself, not something SauceDemo implements — asserting it would be testing Playwright, not the product.
+- The one genuine, narrow gap actually found here: the login route never checks for an existing valid `session-username` cookie before rendering the login form, so revisiting `/` while already authenticated silently lets a new login overwrite the existing session cookie with no confirmation. Tracked as BUG-009 / TC-034 (the risk row above).
+- `sessionStorage`, by contrast, _is_ tab-isolated — SauceDemo doesn't use it for either auth or cart, which is part of why neither is isolated per tab today.
 
 ---
 
@@ -92,21 +103,21 @@ This document defines the quality approach for the project SauceDemo: the standa
 | Level            | Approach                                                                                                                                                                         | Owner           |
 | :--------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :-------------- |
 | **Unit**         | Isolated component validation. _Note: As SauceDemo is a third-party mock application, internal framework unit testing is out of scope._                                          | Dev Team (N/A)  |
-| **Integration**  | Automated verification of data persistence between browser contexts and multi-user session boundaries via Playwright's local/session storage hooks.                              | QA (Automation) |
+| **Integration**  | Automated verification of data persistence across page transitions within a session, via Playwright's local/session storage hooks.                                               | QA (Automation) |
 | **System (E2E)** | Automated cross-page workflows (Login → Inventory → Cart → Checkout Completion) utilizing the Page Object Model (POM) in Playwright + TypeScript.                                | QA (Automation) |
 | **Exploratory**  | Unscripted, time-boxed charter sessions focusing on identifying asset anomalies, visual regression footprints, and edge-case behavior variations across different user profiles. | QA (Manual)     |
 
 ### 4.2 Test types
 
-| Type               | In scope?  | Notes                                                                                                                                             |
-| :----------------- | :--------- | :------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Functional         | ✅ Yes     | Validates that core e-commerce capabilities work as designed for standard user profiles.                                                          |
-| Regression         | ✅ Yes     | Triggered via local execution during development; planned for automated CI execution during a proper @regression tag.                             |
-| API                | ❌ No      | SauceDemo operates entirely client-side with mock static data; no backend API layer exists to test.                                               |
-| Performance / Load | ⬜ Partial | Baseline SLA gating to track explicit performance degradation workflows (specifically targeting the `performance_glitch_user`).                   |
-| Security           | ⬜ Partial | Validation of fundamental session state isolation and basic route-bypass prevention (preventing unauthenticated navigation to `/inventory.html`). |
-| Accessibility      | ✅ Yes     | Automated WCAG 2.0/2.1 AA compliance scans using @axe-core/playwright on core pages.                                                              |
-| Visual regression  | ✅ Yes     | Automated visual snapshot testing using Playwright's native `toHaveScreenshot` matcher on core static views.                                      |
+| Type               | In scope?  | Notes                                                                                                                                                                             |
+| :----------------- | :--------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Functional         | ✅ Yes     | Validates that core e-commerce capabilities work as designed for standard user profiles.                                                                                          |
+| Regression         | ✅ Yes     | Triggered via local execution during development; planned for automated CI execution during a proper @regression tag.                                                             |
+| API                | ❌ No      | SauceDemo operates entirely client-side with mock static data; no backend API layer exists to test.                                                                               |
+| Performance / Load | ⬜ Partial | Baseline SLA gating to track explicit performance degradation workflows (specifically targeting the `performance_glitch_user`).                                                   |
+| Security           | ⬜ Partial | Validation of the authenticated-session guard on the login route (TC-034) and basic route-bypass prevention (preventing unauthenticated navigation to `/inventory.html`, TC-003). |
+| Accessibility      | ✅ Yes     | Automated WCAG 2.0/2.1 AA compliance scans using @axe-core/playwright on core pages.                                                                                              |
+| Visual regression  | ✅ Yes     | Automated visual snapshot testing using Playwright's native `toHaveScreenshot` matcher on core static views.                                                                      |
 
 ### 4.3 Test design techniques
 
@@ -150,7 +161,6 @@ This document defines the quality approach for the project SauceDemo: the standa
 | **Authentication Loops** <br>_(Valid, invalid, locked out user states)_                       | ✅ Yes     | High frequency, core entry gate, high regression risk for daily tests runs.                              |
 | **End-to-End Purchase Funnel** <br>_(Inventory → Cart → Info Form → Overview → Confirmation)_ | ✅ Yes     | The primary revenue-generating user journey; critical business path validation.                          |
 | **Product Inventory Sorting** <br>_(A-Z, Z-A, price sequencing checks)_                       | ✅ Yes     | Stable DOM structure, high visual mutation risk across user accounts.                                    |
-| **Multi-User Data/State Leakage** <br>_(Validating cart isolation across browser sessions)_   | ✅ Yes     | High-impact security risk; verified using Playwright multi-context orchestration.                        |
 | **Accessibility Compliance Standards** <br>_(Base page layout audits)_                        | ✅ Yes     | Scalable automated scanning via Axe-core integration catches common DOM compliance bugs effortlessly.    |
 | **Pixel-Perfect Visual Layouts** <br>_(Static login / inventory page structure comparisons)_  | ✅ Yes     | Natively supported by Playwright engine; essential for verifying asset states across edge case profiles. |
 
@@ -294,5 +304,22 @@ This document defines the quality approach for the project SauceDemo: the standa
 | QA Lead          |      |      |           |
 | Product Owner    |      |      |           |
 | Engineering Lead |      |      |           |
+
+---
+
+## 15. Version history
+
+| Version | Date       | Author       | Summary                                                                                                                         |
+| :------ | :--------- | :----------- | :------------------------------------------------------------------------------------------------------------------------------ |
+| 1.0     | 2026-07-20 | Laura Tejada | Initial test plan.                                                                                                              |
+| 1.1     | 2026-07-31 | Laura Tejada | Reworked the cross-session/cart isolation risk in §3 after investigation showed the original assumption didn't hold. See below. |
+
+### 1.1 — Cross-session/cart isolation risk corrected (2026-07-31)
+
+**How it was:** §3 listed _"Data leakage between active sessions"_ (a user can view or alter a completely different user's cart contents) as a 🔴 Critical risk, mitigated by a planned multi-`BrowserContext` test (TC-020): log in as User A, add items, log in as User B in a separate context, assert User B's cart is empty. §4.1, §4.2, and §7.1 all referenced this as validated, in-scope security coverage.
+
+**How it is now:** TC-020 was removed (it had never been automated — only a "Planned" reference existed). The risk row was replaced with a narrower one, _"Login route lacks an authenticated-session guard"_ (🟡 Medium), mitigated by TC-034 / BUG-009. §4.1, §4.2, and §7.1 were corrected to drop the now-inaccurate "multi-user session boundary" / "cart isolation" claims. A note was added directly under the risk table (§3) walking through cookie/`localStorage`/`sessionStorage` sharing behavior and why cross-user cart isolation isn't a valid requirement for this app.
+
+**Why:** manual testing (opening SauceDemo in two tabs, logging in as different users) appeared to show cart and session state bleeding between tabs. Investigation traced this to two separate facts, not one bug: (1) cookies and `localStorage` are shared across every tab/window of the same browser profile — standard, expected browser behavior, not a defect; and (2) SauceDemo has no backend or per-account data model at all, so there was never a real requirement that switching login identity should isolate or reset cart data. TC-020 was, in effect, testing a browser/Playwright storage guarantee rather than application behavior, and its 🔴 Critical label overstated a risk the app was never designed to prevent. The one genuine gap found in this area — the login route never checking for an existing valid session before rendering the login form (BUG-009) — was kept and is now the sole risk entry for this area, correctly scoped as low impact given the app's actual architecture. Full reasoning lives in the §3 note.
 
 ---

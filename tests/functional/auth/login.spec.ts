@@ -79,6 +79,29 @@ test.describe('authentication feature', () => {
                 await expect(page).not.toHaveURL(/inventory\.html/);
             }
         );
+
+        test(
+            '[TC-034]: an authenticated user revisiting the login route is redirected back to their session instead of re-shown the login form',
+            { tag: ['@security', '@regression'] },
+            async ({ page, loginPage }) => {
+                // eslint-disable-next-line playwright/no-skipped-test
+                test.skip(
+                    true,
+                    'Bug found: the login route has no authenticated-session guard'
+                );
+
+                await loginPage.login({
+                    username: process.env.USER_NAME!,
+                    password: process.env.USER_PASSWORD!,
+                });
+                await expect(page).toHaveURL(/inventory\.html/);
+
+                // revisiting the login URL within the same session
+                await loginPage.open();
+                await expect(page).toHaveURL(/inventory\.html/);
+                await expect(loginPage.loginButton).toBeHidden();
+            }
+        );
     });
 
     test.describe('performance SLA tests @performance', () => {
