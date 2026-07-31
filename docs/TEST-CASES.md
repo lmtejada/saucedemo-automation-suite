@@ -550,7 +550,7 @@ Validates browser history/session storage persistence during navigation.
 **Type:** Functional<br>
 **Priority:** 🟡 Medium<br>
 **Automated:** Yes<br>
-**Automation reference:** Planned — `tests/functional/cart/shopping-cart.spec.ts` — Scenario: Cart state preserved via browser back-button navigation<br>
+**Automation reference:** `tests/functional/cart/shopping-cart.spec.ts` — Scenario: "[TC-019]: cart state is preserved when using the browser back button to return to the cart"<br>
 **Tags:** `@regression`<br>
 
 **Preconditions:**
@@ -570,6 +570,7 @@ Validates browser history/session storage persistence during navigation.
 Using the browser's native back button to return to the cart preserves the exact cart state, with no item loss or duplication.
 
 **Actual result:**
+Passes on `chromium` (the project's regression/CI target). Flaky on `firefox`/`webkit`: `listAllCartItems()` is occasionally read before the cart page finishes rendering post-`domcontentloaded`, returning an empty list — the same pre-existing race affects TC-011 on those browsers and is not specific to this case.
 
 **Test data:**
 
@@ -578,9 +579,9 @@ Using the browser's native back button to return to the cart preserves the exact
 | Retained Item | Sauce Labs Backpack |
 
 **Notes:**
-Complements TC-011, which covers the "Continue Shopping" button path; this covers the native back-button/history path called out separately in TEST-PLAN §3.
+Complements TC-011, which covers the "Continue Shopping" button path; this covers the native back-button/history path called out separately in TEST-PLAN §3. Uses the seeded `CART` storage state (3 items) rather than a single retained item.
 
-**Status:** ⬜ Not run
+**Status:** ✅ Pass (chromium)
 
 ---
 
@@ -999,7 +1000,7 @@ The "All Items" sidebar link returns the user to the inventory page and renders 
 **Type:** Functional<br>
 **Priority:** 🟡 Medium<br>
 **Automated:** Yes<br>
-**Automation reference:** `tests/functional/navigation/sidebar-menu.spec.ts` — Scenario: "Reset App State restores inventory items to their pristine Add to cart state" — currently `test.skip`'d, see BUG-008<br>
+**Automation reference:** `tests/functional/navigation/sidebar-menu.spec.ts` — Scenario: "Reset App State restores inventory items to their Add to cart state" — currently `test.skip`'d, see BUG-008<br>
 **Tags:** `@regression`<br>
 
 **Preconditions:**
@@ -1015,7 +1016,7 @@ The "All Items" sidebar link returns the user to the inventory page and renders 
 | 3    | Click "Reset App State" sidebar link                    | Cart badge clears; every inventory item's button reverts to "Add to cart" |
 
 **Expected result:**
-"Reset App State" returns the inventory page to its pristine state: an empty cart and every product button reading "Add to cart".
+"Reset App State" returns the inventory page to its original state: an empty cart and every product button reading "Add to cart".
 
 **Actual result:**
 The cart badge does clear to empty, but the previously-added product's button stays on "Remove" instead of reverting to "Add to cart" — the button state and the actual (empty) cart contents disagree until the page is reloaded.
