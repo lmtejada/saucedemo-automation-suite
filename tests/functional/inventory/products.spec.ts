@@ -1,7 +1,7 @@
 import { expect, test } from '@fixtures/app';
 
 import { StorageStatePaths } from '@enums/app';
-import { sortProductsByName, sortProductsByPrice } from '@utils/products';
+import { sortProductsByName, sortProductsByPrice } from '@utils/app';
 
 import INVENTORY_PRODUCTS from '@test-data/static/products.json';
 

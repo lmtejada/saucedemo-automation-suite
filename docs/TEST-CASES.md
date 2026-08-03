@@ -74,13 +74,13 @@
 
 **Test steps:**
 
-| Step | Action                                        | Expected result                                                         |
-| ---- | --------------------------------------------- | ----------------------------------------------------------------------- |
-| 1    | Navigate to `https://www.saucedemo.com/`      | Login page `/index.html` is displayed with username and password fields |
-| 2    | Enter `standard_user` into the username input | Field accepts input                                                     |
-| 3    | Enter `secret_sauce` into the password input  | Field accepts masked input                                              |
-| 4    | Click the "Login" button                      | Form submits and browser navigates to `/inventory.html`                 |
-| 5    | Verify inventory container visibility         | Product collection grid and header logo are visible                     |
+| Step | Action                                                | Expected result                                                         |
+| ---- | ----------------------------------------------------- | ----------------------------------------------------------------------- |
+| 1    | Navigate to `https://www.saucedemo.com/`              | Login page `/index.html` is displayed with username and password fields |
+| 2    | Enter `standard_user` into the username input         | Field accepts input                                                     |
+| 3    | Enter `USER_PASSWORD env var` into the password input | Field accepts masked input                                              |
+| 4    | Click the "Login" button                              | Form submits and browser navigates to `/inventory.html`                 |
+| 5    | Verify inventory container visibility                 | Product collection grid and header logo are visible                     |
 
 **Expected result:**
 Successful authentication redirects user to inventory page and establishes a valid session.
@@ -89,10 +89,10 @@ Successful authentication redirects user to inventory page and establishes a val
 
 **Test data:**
 
-| Field    | Value           |
-| -------- | --------------- |
-| Username | `standard_user` |
-| Password | `secret_sauce`  |
+| Field    | Value                   |
+| -------- | ----------------------- |
+| Username | `standard_user`         |
+| Password | `USER_PASSWORD env var` |
 
 **Notes:**
 Primary happy-path entry point for standard user workflows.
@@ -120,7 +120,7 @@ Primary happy-path entry point for standard user workflows.
 | ---- | ------------------------------------------------- | ----------------------------------------------------- |
 | 1    | Navigate to `https://www.saucedemo.com/`          | Login page is displayed                               |
 | 2    | Enter `performance_glitch_user` in username field | Field accepts input                                   |
-| 3    | Enter `secret_sauce` in password field            | Field accepts masked input                            |
+| 3    | Enter `USER_PASSWORD env var` in password field   | Field accepts masked input                            |
 | 4    | Start execution timer and click "Login"           | Login request triggers                                |
 | 5    | Wait for `/inventory.html` URL and stop timer     | Navigation completes successfully within 10,000ms SLA |
 
@@ -134,7 +134,7 @@ Authentication succeeds and redirects to inventory within framework SLA benchmar
 | Field    | Value                     |
 | -------- | ------------------------- |
 | Username | `performance_glitch_user` |
-| Password | `secret_sauce`            |
+| Password | `USER_PASSWORD env var`   |
 
 **Notes:**
 Used to test dynamic waiting mechanisms and performance log thresholds. Run on a single worker to prevent parallel timeout noise.
@@ -149,7 +149,7 @@ Used to test dynamic waiting mechanisms and performance log thresholds. Run on a
 **Type:** Regression<br>
 **Priority:** 🟡 Medium<br>
 **Automated:** Yes<br>
-**Automation reference:** Planned — `tests/functional/auth/session-persistence.spec.ts`<br>
+**Automation reference:** `tests/e2e/checkout.e2e.spec.ts` — Scenario: "[TC-017]: Session token persists across a normal-speed multi-step workflow"<br>
 **Tags:** `@regression` `@security`<br>
 
 **Preconditions:**
@@ -158,29 +158,30 @@ Used to test dynamic waiting mechanisms and performance log thresholds. Run on a
 
 **Test steps:**
 
-| Step | Action                                                                                                                         | Expected result                                                        |
-| ---- | ------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------- |
-| 1    | Capture the session cookie / local storage auth token immediately after login                                                  | Token value recorded                                                   |
-| 2    | Navigate through Inventory → Cart → Checkout step one → Checkout step two, allowing natural page-load transitions between each | No forced logout or redirect to `/index.html` occurs at any transition |
-| 3    | Re-capture the session cookie / local storage auth token after the final transition                                            | Token value is unchanged and still valid                               |
-| 4    | Assert no unauthenticated redirect occurred at any point during the sequence                                                   | User remains on the authenticated flow throughout                      |
+| Step | Action                                                                                                                                             | Expected result                                                        |
+| ---- | -------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
+| 1    | Capture the session cookie / local storage auth token immediately after login                                                                      | Token value recorded                                                   |
+| 2    | Navigate through Inventory → Cart → Checkout step one → Checkout step two → Checkout complete, allowing natural page-load transitions between each | No forced logout or redirect to `/index.html` occurs at any transition |
+| 3    | Re-capture the session cookie / local storage auth token after the purchase completes                                                              | Token value is unchanged and still valid                               |
+| 4    | Assert no unauthenticated redirect occurred at any point during the sequence                                                                       | User remains on the authenticated flow throughout                      |
 
 **Expected result:**
-The session token remains valid and unchanged across a multi-step workflow with real navigation delay between steps; the user is never dropped back to the login page mid-transaction.
+During a normal-speed workflow — real page-to-page navigation with no added delay — the session cookie remains valid and unchanged across Inventory → Cart → Checkout step one → Checkout step two → Checkout complete, and the user is never dropped back to `/index.html`. This includes the post-purchase state reset that TC-025 established happens on the completion transition (cart contents are cleared): that reset must not overreach into clearing the session cookie. This asserts only that nothing in the app triggers a _false_ early logout during ordinary use; it does not assert anything about session duration beyond that. The `session-username` cookie's actual TTL (~10 minutes, confirmed via captured storage state, fixed from login rather than sliding with activity) is a real, reproducible characteristic — but not a documented product requirement, since SauceDemo has no published auth spec and the number is an unannounced third-party implementation detail that could change without notice. See the Session 2 addendum (2026-08-03) and TEST-PLAN.md §3.
 
 **Actual result:**
+Passed — session cookie captured before the funnel and after purchase completion (`/checkout-complete.html`) was byte-for-byte identical, including its `expires` value; no redirect to `/index.html` occurred at any transition.
 
 **Test data:**
 
-| Field    | Value           |
-| -------- | --------------- |
-| Username | `standard_user` |
-| Password | `secret_sauce`  |
+| Field    | Value                   |
+| -------- | ----------------------- |
+| Username | `standard_user`         |
+| Password | `USER_PASSWORD env var` |
 
 **Notes:**
-Delay is produced organically via real multi-page navigation rather than an artificial wait, consistent with the project's `playwright/no-wait-for-timeout` lint rule (no hard waits).
+Delay between steps is produced organically via real multi-page navigation rather than an artificial wait, consistent with the project's `playwright/no-wait-for-timeout` lint rule (no hard waits) — a full run completes in well under a minute, far inside the ~10-minute cookie TTL. This test intentionally does not assert against that TTL boundary itself (e.g. via clock manipulation or an artificial 10+ minute wait): the boundary is an unannounced implementation detail with no documented spec behind it, confirmed only empirically, and pinning a hard assertion to it would repeat the mistake already corrected once in this suite for TC-020 (TEST-PLAN.md §15, v1.1) — testing an observed artifact as though it were a guaranteed requirement.
 
-**Status:** ⬜ Not run
+**Status:** ✅ Pass
 
 ---
 
@@ -868,7 +869,7 @@ TC-012 stops verifying at the confirmation message; this covers the remainder of
 | Field    | Value                     |
 | -------- | ------------------------- |
 | Username | `performance_glitch_user` |
-| Password | `secret_sauce`            |
+| Password | `USER_PASSWORD env var`   |
 
 **Notes:**
 TEST-PLAN §3's Critical mitigation calls for automating "the full happy-path E2E checkout daily" specifically to catch this profile's induced delays; TC-005 only covers this user's _login_ SLA, not the full funnel where a timeout is more likely to actually surface. SLA threshold implemented as 15,000ms for the full funnel.
@@ -1174,10 +1175,10 @@ The login route renders the login form unconditionally — there is no check for
 
 **Test data:**
 
-| Field    | Value           |
-| -------- | --------------- |
-| Username | `standard_user` |
-| Password | `secret_sauce`  |
+| Field    | Value                   |
+| -------- | ----------------------- |
+| Username | `standard_user`         |
+| Password | `USER_PASSWORD env var` |
 
 **Notes:**
 Found while investigating a manually observed cross-tab behavior where logging in as a different user in one tab appeared to affect another tab's session. Traced to `session-username` being a plain shared cookie and the login route never checking for an existing session before rendering the form. Note that session/cookie continuity across tabs and windows of the same profile is itself expected, standard browser behavior, not a defect — separate browser contexts (distinct profiles/incognito) do get their own isolated cookie jar and `localStorage`, but that isolation is a browser/Playwright guarantee, not something SauceDemo implements. The gap here is narrowly that the login route doesn't recognize an existing valid session before letting it be overwritten. See BUG-009 in the Defect log, and TEST-PLAN §3 for the underlying cookie/localStorage/sessionStorage sharing rationale.
@@ -1201,13 +1202,13 @@ Found while investigating a manually observed cross-tab behavior where logging i
 
 **Test steps:**
 
-| Step | Action                                    | Expected result                                                        |
-| ---- | ----------------------------------------- | ---------------------------------------------------------------------- |
-| 1    | Navigate to `https://www.saucedemo.com/`  | Login page displayed                                                   |
-| 2    | Enter `locked_out_user` in username field | Field accepts input                                                    |
-| 3    | Enter `secret_sauce` in password field    | Field accepts masked input                                             |
-| 4    | Click "Login" button                      | Entry is barred; error banner displays                                 |
-| 5    | Assert error banner text                  | Message matches: `Epic sadface: Sorry, this user has been locked out.` |
+| Step | Action                                          | Expected result                                                        |
+| ---- | ----------------------------------------------- | ---------------------------------------------------------------------- |
+| 1    | Navigate to `https://www.saucedemo.com/`        | Login page displayed                                                   |
+| 2    | Enter `locked_out_user` in username field       | Field accepts input                                                    |
+| 3    | Enter `USER_PASSWORD env var` in password field | Field accepts masked input                                             |
+| 4    | Click "Login" button                            | Entry is barred; error banner displays                                 |
+| 5    | Assert error banner text                        | Message matches: `Epic sadface: Sorry, this user has been locked out.` |
 
 **Expected result:**
 Locked out user is barred entry and receives specific account status error message.
@@ -1216,10 +1217,10 @@ Locked out user is barred entry and receives specific account status error messa
 
 **Test data:**
 
-| Field    | Value             |
-| -------- | ----------------- |
-| Username | `locked_out_user` |
-| Password | `secret_sauce`    |
+| Field    | Value                   |
+| -------- | ----------------------- |
+| Username | `locked_out_user`       |
+| Password | `USER_PASSWORD env var` |
 
 **Status:** ✅ Pass
 
@@ -1414,6 +1415,8 @@ Probed: checkout step-one form fill/submit, product image `src` values on `/inve
 **Coverage notes:**
 Opened two tabs against the same browser profile and logged in as different users, prompted by an initial manual observation that account/cart state appeared shared between tabs. Confirmed that session/cookie continuity across tabs and windows of the same browser profile is expected, standard behavior — not a defect — since cookies and `localStorage` are scoped to the origin, not to any tab or window. The one narrow, genuine gap found: the login route never checks for an existing valid `session-username` cookie before rendering the form — verified with a scripted check that, with a valid unexpired session cookie present, reloading `/` still shows a fully interactive login form instead of redirecting to `/inventory.html`. An earlier working theory that this also caused a demonstrable cross-tab cart "bleed" was investigated and dropped: SauceDemo has no per-user data model at all (no backend, no accounts) — `cart-contents` is simply a single global value for the whole browser profile by design, so treating shared cart state as a consequence of the login-guard bug overstated the finding. The login-guard gap itself stands on its own, independent of that cart question.
 
+**Addendum (2026-08-03):** While grooming TC-017 (session persistence across a multi-step workflow), inspected the actual `session-username` cookie captured in Playwright storage state (`.auth/app/*.json`) instead of assuming its lifetime. Its `expires` value is consistently ~599.7 seconds (≈10 minutes) after the login timestamp, across all three captured user profiles (`standard_user`, `performance_glitch_user`, `problem_user`), and does not appear to renew on activity — it's a fixed expiry set at login, not a sliding inactivity timeout. This is a real, reproducible characteristic: a user who idles past ~10 minutes is silently dropped back to `/index.html` once the cookie expires. It is not, however, treated as a documented requirement — SauceDemo has no published auth spec, and a fixed (non-sliding) TTL on a public Sauce Labs training sandbox reads like an implementation default rather than a deliberate security decision. Pinning a test to that exact number would repeat the mistake already corrected once for TC-020 (TEST-PLAN.md §15, v1.1): treating an observed implementation artifact as though it were a guaranteed spec. TC-017 was rescoped accordingly to assert only that no _false_ early logout occurs during a normal-speed workflow, without asserting anything about the ~10-minute boundary itself. See TEST-PLAN.md §3 for the corresponding risk register update.
+
 **Bugs found:**
 
 | Bug     | Summary                                        | Linked TC |
@@ -1423,10 +1426,12 @@ Opened two tabs against the same browser profile and logged in as different user
 **Test cases added as a result of this session:**
 
 - TC-034 — Authenticated session guard on the login route
+- TC-017 — rescoped (2026-08-03) to assert no false early logout during a normal-speed workflow, in light of the confirmed ~10-minute cookie TTL
 
 **Areas needing follow-up:**
 
-- None — this session's finding (the login-route guard gap) is self-contained and fully covered by TC-034.
+- The login-route guard gap is self-contained and fully covered by TC-034.
+- The ~10-minute cookie TTL is recorded here as an observed characteristic only, not a guaranteed contract — if SauceDemo ever changes it (or makes it a sliding window), this note is what goes stale, not a pinned test assertion. No action needed unless real reports of premature logout resurface.
 
 ---
 

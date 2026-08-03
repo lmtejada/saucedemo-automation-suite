@@ -1,7 +1,7 @@
 import { expect, test } from '@fixtures/app';
 
 import { FORM_DEFAULT_DATA } from '@test-data/factories/checkout-customer-form.factory';
-import { parsePriceString } from '@utils/common';
+import { getSessionCookie, parsePriceString } from '@utils/app';
 
 import INVENTORY_PRODUCTS from '@test-data/static/products.json';
 
@@ -285,7 +285,66 @@ test.describe('checkout journey @e2e', () => {
         );
     });
 
-    test.describe('negative Test Cases in purchase journey @e2e', () => {
+    test.describe('session persistence @regression', () => {
+        test.beforeEach(async ({ inventoryPage }) => {
+            await inventoryPage.open();
+        });
+
+        test(
+            '[TC-017]: Session token persists across a normal-speed multi-step workflow',
+            { tag: ['@regression', '@security'] },
+            async ({
+                page,
+                inventoryPage,
+                cartPage,
+                checkoutStepOnePage,
+                checkoutStepTwoPage,
+                checkoutCompletePage,
+            }) => {
+                const product = INVENTORY_PRODUCTS[5];
+                const inventoryItem =
+                    await inventoryPage.getInventoryItemByName(product.name);
+                await inventoryItem!.addToCart();
+
+                const sessionCookieBefore = await getSessionCookie(page);
+                expect(sessionCookieBefore).toBeDefined();
+
+                // Navigate through Inventory -> Cart -> Checkout Step One -> Checkout Step Two
+                // -> Checkout Complete, asserting no unauthenticated redirect occurs at any
+                // transition.
+                await cartPage.nav.goToShoppingCart();
+                await expect(page).not.toHaveURL(/\/(index\.html)?$/);
+
+                await cartPage.checkout();
+                await expect(page).toHaveURL(/checkout-step-one\.html/);
+
+                await checkoutStepOnePage.fillForm(FORM_DEFAULT_DATA);
+                await checkoutStepOnePage.continueCheckout();
+                await expect(page).toHaveURL(/checkout-step-two\.html/);
+
+                // Also confirm checkout-step-two's own content renders (not a silent auth drop).
+                await expect(
+                    checkoutStepTwoPage.getOrderSummaryDetails()
+                ).resolves.toBeDefined();
+
+                // Complete the purchase - TC-025 already confirmed this transition triggers a
+                // post-purchase state reset (cart is cleared); this asserts that reset doesn't
+                // overreach into clearing the session cookie too.
+                await checkoutStepTwoPage.finishCheckout();
+                await expect(page).toHaveURL(/checkout-complete\.html/);
+                await expect(
+                    checkoutCompletePage.getHeaderText()
+                ).resolves.toBe('Thank you for your order!');
+
+                // The session cookie must be the exact same one issued at login - not just
+                // present, but byte-for-byte unchanged
+                const sessionCookieAfter = await getSessionCookie(page);
+                expect(sessionCookieAfter).toEqual(sessionCookieBefore);
+            }
+        );
+    });
+
+    test.describe('negative test cases in purchase journey @e2e', () => {
         const productsToAdd = [INVENTORY_PRODUCTS[1], INVENTORY_PRODUCTS[4]];
 
         test.beforeEach(async ({ inventoryPage }) => {

@@ -10,7 +10,7 @@ import {
 } from '@app-types/app';
 import { CartItemComponent } from '@pages/components/cart-item.component';
 import { NavigationComponent } from '@pages/components/navigation.component';
-import { buildLabelTestId, parsePriceString } from '@utils/common';
+import { buildLabelTestId, parsePriceString } from '@utils/app';
 
 /**
  * Page Object for the Second Step page in Checkout workflow at /checkout-step-two.html.
