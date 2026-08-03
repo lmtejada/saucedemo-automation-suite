@@ -71,4 +71,13 @@ export class InventoryItemComponent {
     async removeFromCart(): Promise<void> {
         await this.removeFromCartButton.click();
     }
+
+    /**
+     * Clicks the item's name to navigate to its detail page.
+     *
+     * @returns {Promise<void>} Resolves once the click completes.
+     */
+    async viewDetails(): Promise<void> {
+        await this.itemName.click();
+    }
 }

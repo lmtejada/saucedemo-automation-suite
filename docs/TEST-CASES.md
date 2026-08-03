@@ -18,6 +18,10 @@
     - [TC-018 — Product image asset integrity verification](#tc-018--product-image-asset-integrity-verification)
     - [TC-030 — Sort dropdown reorders products for every user profile](#tc-030--sort-dropdown-reorders-products-for-every-user-profile)
     - [TC-031 — Remove button on the inventory page removes the item from the cart](#tc-031--remove-button-on-the-inventory-page-removes-the-item-from-the-cart)
+    - [TC-035 — Item detail page renders accurate product data and handles navigation](#tc-035--item-detail-page-renders-accurate-product-data-and-handles-navigation)
+    - [TC-036 — Cart actions on the item detail page stay in sync with the inventory list](#tc-036--cart-actions-on-the-item-detail-page-stay-in-sync-with-the-inventory-list)
+    - [TC-037 — `problem_user` item detail page navigation resolves to the wrong product](#tc-037--problem_user-item-detail-page-navigation-resolves-to-the-wrong-product)
+    - [TC-038 — `problem_user` "Add to cart" works for every product on the item detail page](#tc-038--problem_user-add-to-cart-works-for-every-product-on-the-item-detail-page)
 - [3. Shopping Cart Module](#3-shopping-cart-module)
     - [TC-009 — Data integrity verification between Inventory and Cart](#tc-009--data-integrity-verification-between-inventory-and-cart)
     - [TC-010 — Dynamic item removal within cart page](#tc-010--dynamic-item-removal-within-cart-page)
@@ -52,6 +56,7 @@
 - [Exploratory testing session log](#exploratory-testing-session-log)
     - [Session 1 — `problem_user` divergence sweep](#session-1--problem_user-divergence-sweep)
     - [Session 2 — Cross-tab session guard investigation](#session-2--cross-tab-session-guard-investigation)
+    - [Session 3 — `problem_user` item detail page investigation](#session-3--problem_user-item-detail-page-investigation)
 - [Test execution summary](#test-execution-summary)
 
 ---
@@ -421,6 +426,169 @@ For `problem_user`, clicking "Remove" is a no-op: the cart badge count stays unc
 
 **Notes:**
 Extends TC-008's standard_user coverage to `problem_user`, where the Remove action is broken. See BUG-007 in the Defect log.
+
+**Status:** ⏭ Skipped (known bug)
+
+---
+
+### TC-035 — Item detail page renders accurate product data and handles navigation
+
+**Feature:** Inventory / Products<br>
+**Type:** Functional<br>
+**Priority:** 🟡 Medium<br>
+**Automated:** Yes<br>
+**Automation reference:** `tests/functional/inventory/inventory-details.spec.ts` — Scenarios: "[TC-035]: clicking a product's name navigates to its own detail page with matching data", "[TC-035]: clicking a product's image navigates to its own detail page", "[TC-035]: 'Back to products' returns to the inventory page", "[TC-035]: navigating to a non-existent item id shows an ITEM NOT FOUND state"<br>
+**Tags:** `@regression`<br>
+
+**Preconditions:**
+
+- User is authenticated as `standard_user` on `/inventory.html`.
+
+**Test steps:**
+
+| Step | Action                                                                                  | Expected result                                                             |
+| ---- | --------------------------------------------------------------------------------------- | --------------------------------------------------------------------------- |
+| 1    | Click a product's name from the inventory grid                                          | Navigates to `/inventory-item.html?id=<N>` for that same product            |
+| 2    | Compare the displayed name, description, price, and image to the source card            | All fields match the product that was clicked, exactly                      |
+| 3    | Return to `/inventory.html` and click a different product's image (instead of its name) | Navigates to that product's own detail page; data matches                   |
+| 4    | Click "Back to products"                                                                | Returns to `/inventory.html`                                                |
+| 5    | Navigate directly to `/inventory-item.html?id=999` (a non-existent id)                  | Renders an "ITEM NOT FOUND" state instead of erroring or showing stale data |
+
+**Expected result:**
+The item detail page always displays the data for the product that was actually clicked, regardless of entry point (name or image), and handles an invalid id gracefully.
+
+**Actual result:**
+Matches expected — verified for `standard_user` across all 6 products (name click), image click, "Back to products", and the invalid-id case.
+
+**Test data:**
+
+| Field      | Value           |
+| ---------- | --------------- |
+| Users      | `standard_user` |
+| Invalid id | `999`           |
+
+**Notes:**
+Required building `InventoryItemDetailsPage` (composes the existing `InventoryItemComponent` around the page's single item container) and a `viewDetails()` click handler on `InventoryItemComponent`, plus wiring `inventoryItemDetailsPage` into the fixtures. See Session 3.
+
+**Status:** ✅ Pass
+
+---
+
+### TC-036 — Cart actions on the item detail page stay in sync with the inventory list
+
+**Feature:** Inventory / Products<br>
+**Type:** Functional<br>
+**Priority:** 🟡 Medium<br>
+**Automated:** Yes<br>
+**Automation reference:** `tests/functional/inventory/inventory-details.spec.ts` — Scenarios: "[TC-036]: adding to cart from the item detail page stays in sync with the inventory list", "[TC-036]: removing from cart on the item detail page stays in sync with the inventory list", "[TC-036]: opening the detail page for an item already in the cart shows the Remove button"<br>
+**Tags:** `@regression`<br>
+
+**Preconditions:**
+
+- User is authenticated as `standard_user` on `/inventory.html` with an empty cart.
+
+**Test steps:**
+
+| Step | Action                                                                                      | Expected result                                                                         |
+| ---- | ------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| 1    | Open a product's detail page and click "Add to cart"                                        | Button toggles to "Remove"; cart badge increments to 1                                  |
+| 2    | Return to `/inventory.html`                                                                 | Same product's button on the list also shows "Remove" — state is shared, not page-local |
+| 3    | Reopen the product's detail page and click "Remove"                                         | Button reverts to "Add to cart"; cart badge decrements                                  |
+| 4    | Add a different product to cart from the inventory list, then open its detail page directly | Detail page shows "Remove" (not "Add to cart"), reflecting the existing cart state      |
+
+**Expected result:**
+Cart state is fully shared and bidirectionally consistent between the item detail page and the inventory list — the same underlying state, not independently tracked per page.
+
+**Test data:**
+
+| Field     | Value               |
+| --------- | ------------------- |
+| Users     | `standard_user`     |
+| Item Name | Sauce Labs Backpack |
+
+**Notes:**
+Companion to TC-035; exercises the add/remove action surface rather than navigation and rendering.
+
+**Status:** ✅ Pass
+
+---
+
+### TC-037 — `problem_user` item detail page navigation resolves to the wrong product
+
+**Feature:** Inventory / Products<br>
+**Type:** Functional<br>
+**Priority:** 🟠 High<br>
+**Automated:** Yes<br>
+**Automation reference:** `tests/functional/inventory/inventory-details.spec.ts` — Scenario: "[TC-037]: item detail page navigation resolves to the wrong product" — currently `test.skip`'d, see BUG-010<br>
+**Tags:** `@problematic`<br>
+
+**Preconditions:**
+
+- User is authenticated as `problem_user` on `/inventory.html`.
+
+**Test steps:**
+
+| Step | Action                                                                                            | Expected result                                                                                      |
+| ---- | ------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| 1    | Click each of the 6 products' name (or image) in turn, noting which product was clicked each time | Detail page navigates for each click                                                                 |
+| 2    | Compare the product shown on the detail page to the product that was clicked                      | For `standard_user` these match (TC-035) — repeat the same comparison as `problem_user`              |
+| 3    | Record the result for all 6 products                                                              | Every product, when clicked, should land on its own detail page — currently fails, see Actual result |
+| 4    | Specifically click "Sauce Labs Fleece Jacket"                                                     | Should land on its own detail page — currently fails, see Actual result                              |
+
+**Expected result:**
+Clicking any product navigates to that same product's own detail page, regardless of user profile — same behavior already verified for `standard_user` in TC-035.
+
+**Actual result:**
+For `problem_user`, every single product navigation (by name or image) lands on a different, incorrect product's detail page — confirmed for all 6 products, not intermittent. One product, "Sauce Labs Fleece Jacket", maps to `id=6`, which renders "ITEM NOT FOUND" — its detail page is entirely unreachable through normal UI navigation for this profile.
+
+**Test data:**
+
+| Field | Value          |
+| ----- | -------------- |
+| Users | `problem_user` |
+
+**Notes:**
+This also produces an easy-to-misread secondary symptom: because you land on the wrong product, and that product usually isn't the one you just added to cart, the detail page can appear to "never show Remove" / "always show Add to cart" even for items genuinely in the cart. Verified this is not an independent defect — direct navigation to a product's correct id, and click-through cases where the wrongly-landed-on product happened to already be in cart, both display the correct Add/Remove state. Tracked as one root-cause defect, BUG-010, not two. See Session 3.
+
+**Status:** ⏭ Skipped (known bug)
+
+---
+
+### TC-038 — `problem_user` "Add to cart" works for every product on the item detail page
+
+**Feature:** Inventory / Products<br>
+**Type:** Functional<br>
+**Priority:** 🟡 Medium<br>
+**Automated:** Yes<br>
+**Automation reference:** `tests/functional/inventory/inventory-details.spec.ts` — Scenario: "[TC-038]: 'Add to cart' works for every product on the item detail page" — currently `test.skip`'d, see BUG-011<br>
+**Tags:** `@problematic`<br>
+
+**Preconditions:**
+
+- User is authenticated as `problem_user`. Detail pages are opened by direct URL (`inventoryItemDetailsPage.open(id)`) to bypass BUG-010's navigation mismatch.
+
+**Test steps:**
+
+| Step | Action                                                                     | Expected result                                                                                                   |
+| ---- | -------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| 1    | For each product id in the catalog, open its own item detail page directly | Detail page renders that product                                                                                  |
+| 2    | Click "Add to cart"                                                        | Button should toggle to "Remove"; cart badge should show 1 — currently fails for some products, see Actual result |
+| 3    | Reset the cart and repeat for the next product id                          | Same result expected for every product, regardless of id                                                          |
+
+**Expected result:**
+"Add to cart" works identically for every product on the item detail page, for every user profile.
+
+**Actual result:**
+For `problem_user`, "Add to cart" on the item detail page is a no-op for exactly half of the catalog — reproducible for `Sauce Labs Bolt T-Shirt`, `Sauce Labs Fleece Jacket`, and `Test.allTheThings() T-Shirt (Red)` — while it works correctly for `Sauce Labs Backpack`, `Sauce Labs Bike Light`, and `Sauce Labs Onesie`. Critically, this is **not** specific to the item detail page: the exact same three products also fail to add to cart from the inventory list page. This corrects an earlier, narrower finding from this same investigation that mischaracterized it as a detail-page-only defect (see the Session 3 addendum in the exploratory log).
+
+**Test data:**
+
+| Field | Value          |
+| ----- | -------------- |
+| Users | `problem_user` |
+
+**Notes:**
+Likely shares a root cause with BUG-007 ("Remove" no-op on the inventory list page for `Sauce Labs Backpack`) rather than being fully independent — both look like symptoms of the same broken per-product click-handler binding that also produces BUG-010's navigation mismatch. Kept as a separate defect entry because the observable symptom (which action fails, and for which products) differs, and because BUG-007 has not been re-verified against the full catalog to confirm whether it follows the same even/odd-id split. See BUG-011 and the Session 3 addendum.
 
 **Status:** ⏭ Skipped (known bug)
 
@@ -1354,17 +1522,19 @@ Found via exploratory testing while extending E2E coverage to non-standard user 
 
 _Bugs found during this test execution cycle. Link to the issue tracker._
 
-| ID      | Title                                                                      | Severity    | Steps to reproduce                                                                                                                                                                                                                                                                                                                                                                                                                              | Linked TC | Status  |
-| ------- | -------------------------------------------------------------------------- | ----------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- | ------- |
-| BUG-001 | Checkout step one accepts whitespace-only Postal Code                      | 🟡 Medium   | 1. Add an item to cart and open `/checkout-step-one.html`. 2. Fill First Name and Last Name with valid values. 3. Enter only spaces (e.g. `"   "`) into Postal Code. 4. Click Continue. Actual: form submits to `/checkout-step-two.html` instead of blocking with `Error: Postal Code is required`.                                                                                                                                            | TC-013    | 🔴 Open |
-| BUG-002 | Shipping form data not preserved after aborting checkout from step two     | 🟡 Medium   | 1. Add items to cart, checkout, and fill/submit the step-one shipping form. 2. On `/checkout-step-two.html`, click "Cancel" (returns to `/inventory.html`). 3. Resume checkout via Cart → Checkout, landing back on `/checkout-step-one.html`. Actual: shipping form fields are empty instead of retaining the previously entered First Name/Last Name/Postal Code.                                                                             | TC-023    | 🔴 Open |
-| BUG-003 | Checkout completes successfully with an empty cart ($0.00 order)           | 🔴 Critical | 1. Clear the cart to 0 items and open `/cart.html`. 2. Click "Checkout" (button is enabled). 3. Fill the shipping form and click "Continue" — overview shows `Item total: $0`, `Tax: $0.00`, `Total: $0.00`. 4. Click "Finish". Actual: navigates to `/checkout-complete.html` with "Thank you for your order!" — a full order confirmation for nothing.                                                                                        | TC-027    | 🔴 Open |
-| BUG-004 | `problem_user` shipping form mis-fills, blocking checkout entirely         | 🟠 High     | 1. Log in as `problem_user`, add an item to cart, and open `/checkout-step-one.html`. 2. Fill First Name = "John", Last Name = "Doe", Postal Code = "10255". 3. Click "Continue". Actual: the form actually holds `{firstName: "Doe", lastName: "", postalCode: "10255"}` — Last Name's value overwrote First Name and Last Name is empty — so validation blocks with "Error: Last Name is required" and the page never advances past step one. | TC-028    | 🔴 Open |
-| BUG-005 | Product images are identical/broken for `problem_user`                     | 🟡 Medium   | 1. Log in as `problem_user` and open `/inventory.html`. 2. Read the `src` attribute of every product image. Actual: all 6 products resolve to the same placeholder asset (`/assets/sl-404-*.jpg`) instead of their own distinct image.                                                                                                                                                                                                          | TC-018    | 🔴 Open |
-| BUG-006 | Sort dropdown does not reorder products for `problem_user`                 | 🟡 Medium   | 1. Log in as `problem_user` and open `/inventory.html`. 2. Select "Name (Z to A)" or any other sort option from the dropdown. Actual: the product list stays in its original default A-Z order — the selection has no effect on the DOM.                                                                                                                                                                                                        | TC-030    | 🔴 Open |
-| BUG-007 | "Remove" button on the inventory page is a no-op for `problem_user`        | 🟡 Medium   | 1. Log in as `problem_user`, open `/inventory.html`, and click "Add to cart" then "Remove" for a product. Actual: the cart badge count stays unchanged, the button still shows "Remove" instead of reverting, and the item remains present on `/cart.html`.                                                                                                                                                                                     | TC-031    | 🔴 Open |
-| BUG-008 | "Reset App State" clears the cart but leaves inventory buttons on "Remove" | 🟡 Medium   | 1. Open `/inventory.html` and click "Add to cart" for a product (button now reads "Remove", cart badge shows `1`). 2. Open the hamburger sidebar menu and click "Reset App State". Actual: the cart badge clears to empty (the cart itself is correctly reset), but the product's button stays on "Remove" instead of reverting to "Add to cart" — button state and actual cart contents disagree until the page is reloaded.                   | TC-033    | 🔴 Open |
-| BUG-009 | Login route has no authenticated-session guard                             | 🟡 Medium   | 1. Log in as `standard_user` (sets the `session-username` cookie). 2. With that cookie still valid and unexpired, navigate back to `/`. Actual: the login form renders and accepts submission unconditionally regardless of the existing valid session — there is no check/redirect for an already-authenticated session, so submitting new credentials silently overwrites the existing session cookie with no warning.                        | TC-034    | 🔴 Open |
+| ID      | Title                                                                                                                  | Severity    | Steps to reproduce                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              | Linked TC | Status  |
+| ------- | ---------------------------------------------------------------------------------------------------------------------- | ----------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- | ------- |
+| BUG-001 | Checkout step one accepts whitespace-only Postal Code                                                                  | 🟡 Medium   | 1. Add an item to cart and open `/checkout-step-one.html`. 2. Fill First Name and Last Name with valid values. 3. Enter only spaces (e.g. `"   "`) into Postal Code. 4. Click Continue. Actual: form submits to `/checkout-step-two.html` instead of blocking with `Error: Postal Code is required`.                                                                                                                                                                                                            | TC-013    | 🔴 Open |
+| BUG-002 | Shipping form data not preserved after aborting checkout from step two                                                 | 🟡 Medium   | 1. Add items to cart, checkout, and fill/submit the step-one shipping form. 2. On `/checkout-step-two.html`, click "Cancel" (returns to `/inventory.html`). 3. Resume checkout via Cart → Checkout, landing back on `/checkout-step-one.html`. Actual: shipping form fields are empty instead of retaining the previously entered First Name/Last Name/Postal Code.                                                                                                                                             | TC-023    | 🔴 Open |
+| BUG-003 | Checkout completes successfully with an empty cart ($0.00 order)                                                       | 🔴 Critical | 1. Clear the cart to 0 items and open `/cart.html`. 2. Click "Checkout" (button is enabled). 3. Fill the shipping form and click "Continue" — overview shows `Item total: $0`, `Tax: $0.00`, `Total: $0.00`. 4. Click "Finish". Actual: navigates to `/checkout-complete.html` with "Thank you for your order!" — a full order confirmation for nothing.                                                                                                                                                        | TC-027    | 🔴 Open |
+| BUG-004 | `problem_user` shipping form mis-fills, blocking checkout entirely                                                     | 🟠 High     | 1. Log in as `problem_user`, add an item to cart, and open `/checkout-step-one.html`. 2. Fill First Name = "John", Last Name = "Doe", Postal Code = "10255". 3. Click "Continue". Actual: the form actually holds `{firstName: "Doe", lastName: "", postalCode: "10255"}` — Last Name's value overwrote First Name and Last Name is empty — so validation blocks with "Error: Last Name is required" and the page never advances past step one.                                                                 | TC-028    | 🔴 Open |
+| BUG-005 | Product images are identical/broken for `problem_user`                                                                 | 🟡 Medium   | 1. Log in as `problem_user` and open `/inventory.html`. 2. Read the `src` attribute of every product image. Actual: all 6 products resolve to the same placeholder asset (`/assets/sl-404-*.jpg`) instead of their own distinct image.                                                                                                                                                                                                                                                                          | TC-018    | 🔴 Open |
+| BUG-006 | Sort dropdown does not reorder products for `problem_user`                                                             | 🟡 Medium   | 1. Log in as `problem_user` and open `/inventory.html`. 2. Select "Name (Z to A)" or any other sort option from the dropdown. Actual: the product list stays in its original default A-Z order — the selection has no effect on the DOM.                                                                                                                                                                                                                                                                        | TC-030    | 🔴 Open |
+| BUG-007 | "Remove" button on the inventory page is a no-op for `problem_user`                                                    | 🟡 Medium   | 1. Log in as `problem_user`, open `/inventory.html`, and click "Add to cart" then "Remove" for a product. Actual: the cart badge count stays unchanged, the button still shows "Remove" instead of reverting, and the item remains present on `/cart.html`.                                                                                                                                                                                                                                                     | TC-031    | 🔴 Open |
+| BUG-008 | "Reset App State" clears the cart but leaves inventory buttons on "Remove"                                             | 🟡 Medium   | 1. Open `/inventory.html` and click "Add to cart" for a product (button now reads "Remove", cart badge shows `1`). 2. Open the hamburger sidebar menu and click "Reset App State". Actual: the cart badge clears to empty (the cart itself is correctly reset), but the product's button stays on "Remove" instead of reverting to "Add to cart" — button state and actual cart contents disagree until the page is reloaded.                                                                                   | TC-033    | 🔴 Open |
+| BUG-009 | Login route has no authenticated-session guard                                                                         | 🟡 Medium   | 1. Log in as `standard_user` (sets the `session-username` cookie). 2. With that cookie still valid and unexpired, navigate back to `/`. Actual: the login form renders and accepts submission unconditionally regardless of the existing valid session — there is no check/redirect for an already-authenticated session, so submitting new credentials silently overwrites the existing session cookie with no warning.                                                                                        | TC-034    | 🔴 Open |
+| BUG-010 | Item detail page navigation resolves to the wrong product for `problem_user`                                           | 🟠 High     | 1. Log in as `problem_user` and open `/inventory.html`. 2. Click any product's name or image. Actual: the detail page shown is for a different product than the one clicked, reproducible for all 6 products. 3. Specifically click "Sauce Labs Fleece Jacket". Actual: lands on `/inventory-item.html?id=6`, which renders "ITEM NOT FOUND" — this product's detail page is entirely unreachable via UI navigation for this profile.                                                                           | TC-037    | 🔴 Open |
+| BUG-011 | "Add to cart" is a no-op for half of the catalog, for `problem_user`, on both the inventory list and item detail pages | 🟡 Medium   | 1. Log in as `problem_user`. 2. Click "Add to cart" for each of the 6 products in turn, on either `/inventory.html` or a product's own `/inventory-item.html?id=N` page. Actual: the action is a no-op — no badge change, no button toggle, item not added — for `Sauce Labs Bolt T-Shirt`, `Sauce Labs Fleece Jacket`, and `Test.allTheThings() T-Shirt (Red)`, on both pages identically. It works correctly for `Sauce Labs Backpack`, `Sauce Labs Bike Light`, and `Sauce Labs Onesie`, also on both pages. | TC-038    | 🔴 Open |
 
 ---
 
@@ -1432,6 +1602,43 @@ Opened two tabs against the same browser profile and logged in as different user
 
 - The login-route guard gap is self-contained and fully covered by TC-034.
 - The ~10-minute cookie TTL is recorded here as an observed characteristic only, not a guaranteed contract — if SauceDemo ever changes it (or makes it a sliding window), this note is what goes stale, not a pinned test assertion. No action needed unless real reports of premature logout resurface.
+
+---
+
+### Session 3 — `problem_user` item detail page investigation
+
+**Session date:** 2026-08-03<br>
+**Tester:** Laura Tejada<br>
+**Charter:** Investigate a manually-observed report that the inventory page's "Remove" button doesn't work for `problem_user`; while verifying, explore the item detail page (`/inventory-item.html`) end to end for both `standard_user` (baseline) and `problem_user` (divergence), since no test cases or page object existed for this navigation path at all.<br>
+**Duration:** 45m<br>
+
+**Coverage notes:**
+The reported "Remove doesn't work" symptom traced back to an already-tracked defect, BUG-007 (inventory list page, not the detail page). While confirming that, established `standard_user` baseline behavior for `/inventory-item.html`: clicking a product's name or image navigates to that product's own detail page with matching name/description/price/image, "Add to cart"/"Remove" stay in sync with the inventory list, "Back to products" returns correctly, and an invalid id (`?id=999`) renders a graceful "ITEM NOT FOUND" state rather than erroring. Repeating the same checks as `problem_user` surfaced two new, previously undocumented defects: BUG-010 (clicking any of the 6 products lands on a different product's detail page — 100% reproducible, and one product's own id maps to a dead "ITEM NOT FOUND" page) and BUG-011 ("Add to cart" is a no-op specifically on the detail page, while the same action works correctly from the inventory list for the same profile).
+
+A specific claim was also investigated directly: "the item view doesn't show the Remove button when the item is already in the cart, it always shows Add to Cart." Verified this is not a third, independent defect — it's a downstream symptom of BUG-010. Two checks confirmed the underlying cart-state binding is fine: navigating by exact URL to an in-cart item's own id correctly shows "Remove", and in one click-through case where the (wrong, per BUG-010) landed-on product happened to already be in cart, it also correctly showed "Remove". The "never shows Remove" pattern is just what BUG-010 looks like from the user's seat — clicking an in-cart item routes you to a different, not-in-cart item, which legitimately shows "Add to cart" — not a separate binding failure. Documented as one root-cause defect, not two, to avoid double-counting in the defect log.
+
+**Addendum (2026-08-03):** While automating TC-038, the original framing of BUG-011 ("Add to cart" broken only on the detail page) didn't survive a wider check. The initial finding used a single sample — the first product, reached via click-through — and a one-item control check on the list page, which happened to pick a product where the action works. Testing all 6 products directly by id revealed an alternating pattern: `Add to cart` is a no-op for `Sauce Labs Bolt T-Shirt`, `Sauce Labs Fleece Jacket`, and `Test.allTheThings() T-Shirt (Red)`, and works for `Sauce Labs Backpack`, `Sauce Labs Bike Light`, and `Sauce Labs Onesie` — and this split is identical on the inventory list page, not detail-page-specific at all. BUG-011 and TC-038 were rewritten to describe the real, verified shape of the defect. This also means the automated test itself needed correcting before being trusted: the corrected TC-038 loops through every product id and was confirmed to fail for the right reason (with the `test.skip` temporarily removed) before being finalized, rather than passing on a single, non-representative sample.
+
+**Bugs found:**
+
+| Bug     | Summary                                                                                                                                                | Linked TC |
+| ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ | --------- |
+| BUG-010 | Item detail page navigation resolves to the wrong product — reproducible for all 6 products, one product's detail page is entirely unreachable         | TC-037    |
+| BUG-011 | "Add to cart" is a no-op for half of the catalog, for `problem_user`, on both the inventory list and item detail pages (corrected, see addendum above) | TC-038    |
+
+**Test cases added as a result of this session:**
+
+- TC-035 — Item detail page renders accurate product data and handles navigation (`standard_user` baseline)
+- TC-036 — Cart actions on the item detail page stay in sync with the inventory list (`standard_user` baseline)
+- TC-037 — `problem_user` item detail page navigation resolves to the wrong product
+- TC-038 — `problem_user` "Add to cart" works for every product on the item detail page (rescoped per the addendum above)
+
+**Areas needing follow-up:**
+
+- TC-035–038 are now automated in `tests/functional/inventory/inventory-details.spec.ts`; all pass except TC-037/TC-038, which are `test.skip`'d pending BUG-010/BUG-011 fixes (both confirmed to fail correctly with the skip removed).
+- Accessibility and visual regression coverage of the item detail page is unassessed for either user profile.
+- Whether BUG-010's product-mismatch mapping is stable/deterministic across sessions or varies per session hasn't been tested — current findings are from a single session.
+- BUG-007 (Remove no-op on the inventory list page) was only ever verified against `Sauce Labs Backpack`. Given BUG-011's even/odd-id split, BUG-007 should be re-verified against the full catalog rather than assumed to apply uniformly.
 
 ---
 
