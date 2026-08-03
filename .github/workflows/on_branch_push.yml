@@ -35,6 +35,8 @@ jobs:
               run: npm run test:smoke
               env:
                   APP_URL: ${{ vars.APP_URL }}
+                  PERFORMANCE_USER_NAME: ${{ secrets.PERFORMANCE_USER_NAME }}
+                  PROBLEM_USER_NAME: ${{ secrets.PROBLEM_USER_NAME }}
                   USER_NAME: ${{ secrets.USER_NAME }}
                   USER_PASSWORD: ${{ secrets.USER_PASSWORD }}
             - uses: actions/upload-artifact@v4
