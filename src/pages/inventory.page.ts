@@ -63,11 +63,11 @@ export class InventoryPage {
     }
 
     /**
-     * Lists all inventory items on the page.
+     * Lists all inventory items data on the page.
      *
      * @returns {Promise<ProductDetails[]>} Resolves with an array of product details.
      */
-    async listAllInventoryItems(): Promise<ProductDetails[]> {
+    async listAllItemsData(): Promise<ProductDetails[]> {
         const itemsCount = await this.getInventoryItemsCount();
         const items: ProductDetails[] = [];
 
@@ -80,6 +80,28 @@ export class InventoryPage {
             );
             const itemDetails = await itemComponent.getItemDetails();
             items.push(itemDetails);
+        }
+
+        return items;
+    }
+
+    /**
+     * Lists all inventory items on the page.
+     *
+     * @returns {Promise<InventoryItemComponent[]>} Resolves with an array of product details.
+     */
+    async listAllInventoryItems(): Promise<InventoryItemComponent[]> {
+        const itemsCount = await this.getInventoryItemsCount();
+        const items: InventoryItemComponent[] = [];
+
+        for (let i = 0; i < itemsCount; i++) {
+            // eslint-disable-next-line playwright/no-nth-methods
+            const itemLocator = this.inventoryItems.nth(i);
+            const itemComponent = new InventoryItemComponent(
+                this.page,
+                itemLocator
+            );
+            items.push(itemComponent);
         }
 
         return items;

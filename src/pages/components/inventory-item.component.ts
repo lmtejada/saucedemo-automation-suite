@@ -19,7 +19,7 @@ export class InventoryItemComponent {
         this.itemName = rootLocator.getByTestId('inventory-item-name');
         this.itemDescription = rootLocator.getByTestId('inventory-item-desc');
         this.itemPrice = rootLocator.getByTestId('inventory-item-price');
-        this.itemImage = this.itemImage = rootLocator.getByRole('img');
+        this.itemImage = rootLocator.getByRole('img');
         this.addToCartButton = rootLocator.getByRole('button', {
             name: `Add to cart`,
         });
@@ -46,6 +46,15 @@ export class InventoryItemComponent {
     }
 
     /**
+     * Retrieves the image source of the inventory item.
+     *
+     * @returns {Promise<string | null>} Resolves with the image src attribute.
+     */
+    async getImageSrc(): Promise<string | null> {
+        return await this.itemImage.getAttribute('src');
+    }
+
+    /**
      * Clicks the "Add to Cart" button for the inventory item.
      *
      * @returns {Promise<void>} Resolves once the button is clicked.
@@ -61,5 +70,14 @@ export class InventoryItemComponent {
      */
     async removeFromCart(): Promise<void> {
         await this.removeFromCartButton.click();
+    }
+
+    /**
+     * Clicks the item's name to navigate to its detail page.
+     *
+     * @returns {Promise<void>} Resolves once the click completes.
+     */
+    async viewDetails(): Promise<void> {
+        await this.itemName.click();
     }
 }

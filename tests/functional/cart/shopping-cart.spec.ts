@@ -83,6 +83,27 @@ test.describe('shopping cart feature', () => {
                 expect(cartItemsAfter).toEqual(cartItemsBefore);
             }
         );
+
+        test(
+            '[TC-019]: cart state is preserved when using the browser back button to return to the cart',
+            { tag: '@regression' },
+            async ({ page, cartPage, inventoryPage }) => {
+                const cartItemsBefore = await cartPage.listAllCartItems();
+                const cartCountBefore = await cartPage.nav.getCartCount();
+
+                await inventoryPage.open();
+                await expect(page).toHaveURL(/inventory\.html/);
+
+                await page.goBack();
+                await expect(page).toHaveURL(/cart\.html/);
+
+                const cartItemsAfter = await cartPage.listAllCartItems();
+                const cartCountAfter = await cartPage.nav.getCartCount();
+
+                expect(cartItemsAfter).toEqual(cartItemsBefore);
+                expect(cartCountAfter).toBe(cartCountBefore);
+            }
+        );
     });
 
     test.describe('test user journey @smoke', () => {

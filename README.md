@@ -4,6 +4,8 @@ Playwright + TypeScript test automation scaffold for [SauceDemo](https://www.sau
 
 **Stack:** Playwright · TypeScript · ESLint + Prettier · Husky + lint-staged · GitHub Actions
 
+**Documentation:** [Test Plan](docs/TEST-PLAN.md) (strategy, scope, risk register) · [Test Cases](docs/TEST-CASES.md) (coverage & defect log) · [Test Framework](docs/TEST-FRAMEWORK.md) (structure, conventions, and the _why_ behind non-obvious decisions)
+
 ---
 
 ## Getting Started
@@ -32,32 +34,28 @@ ENVIRONMENT=staging npx playwright test
 
 ```
 saucedemo-automation-suite/
-├── .github/
-│   └── workflows/
-│       └── playwright.yml      # CI: installs deps/browsers, runs the suite, uploads HTML report
-├── .husky/
-│   └── pre-commit               # Runs lint-staged before each commit
+├── .github/workflows/    # CI: installs deps/browsers, runs the suite, uploads HTML report
+├── .husky/                # Runs lint-staged before each commit
 ├── src/
-│   ├── enums/
-│   │   └── app.ts                # Shared enums (e.g. StorageStatePaths for auth state files)
-│   └── test-data/
-│       └── static/
-│           └── users.json        # Static test data (user personas, credentials, etc.)
+│   ├── pages/              # Page Object Model
+│   ├── fixtures/            # Playwright fixture composition
+│   ├── enums/ types/ utils/  # Shared constants, interfaces, helpers
+│   └── test-data/             # Static fixtures + data factories
 ├── tests/
-│   └── example.spec.ts           # Placeholder Playwright starter test
-├── .env.example                  # Template for required environment variables
-├── .env                          # Local env file (git-ignored; copy from .env.example)
-├── eslint.config.mts             # Flat ESLint config (TypeScript + Playwright + Prettier rules)
-├── playwright.config.ts          # Playwright projects, reporters, timeouts, storage state setup
-├── tsconfig.json                 # TypeScript compiler options
-└── package.json                  # Scripts and dependencies
+│   ├── functional/          # Feature-level specs
+│   ├── e2e/                  # Full multi-page journey specs
+│   └── *.setup.ts              # Playwright setup projects (auth, cart seeding)
+├── eslint.config.mts      # Flat ESLint config
+├── playwright.config.ts   # Playwright projects, reporters, storage state setup
+├── tsconfig.json          # TypeScript compiler options + path aliases
+└── package.json           # Scripts and dependencies
 ```
+
+See [docs/TEST-FRAMEWORK.md](docs/TEST-FRAMEWORK.md) for the full structure, path-alias reference, and naming conventions.
 
 ---
 
 ## Available Scripts
-
-### 8.3 Execution script matrix
 
 | Command                                                  | Targeted Suite / Tag                                     | Operational Purpose                                                                                    |
 | :------------------------------------------------------- | :------------------------------------------------------- | :----------------------------------------------------------------------------------------------------- |
@@ -83,21 +81,44 @@ Tag-based scripts rely on `@tag` annotations in test titles (e.g. `test('... @sm
 
 ---
 
+## Visual Regression Testing
+
+Visual snapshots live in `tests/__snapshots__/` (one folder per spec file) and are checked into git as the approved baseline.
+
+- Run visual tests locally: `npm run test:visual`
+- Update baselines locally: `npm run test:visual:update`
+
+**Snapshots must be generated on the same OS CI runs on (Ubuntu).** A baseline captured locally on macOS/Windows will fail in CI due to font-rendering differences, even when the layout hasn't actually changed. To update the committed baselines correctly:
+
+1. Push your branch.
+2. Trigger the **"Update Playwright Visual Snapshots"** workflow manually from the Actions tab (`workflow_dispatch`), targeting your branch.
+3. It regenerates snapshots inside GitHub's Ubuntu runner and commits them straight back to your branch (commit message: `chore(visual): update visual regression snapshots [skip ci]`).
+4. Pull the updated snapshots locally before continuing.
+
+Never hand-commit snapshots generated on a local macOS/Windows machine — they will not match the Ubuntu baseline CI compares against.
+
+---
+
+## Accessibility Testing
+
+Accessibility checks run via the `@a11y` tag: `npm run test:a11y`.
+
+Today, only a placeholder framework check carries this tag — real WCAG 2.1 AA scans (via `@axe-core/playwright`) are planned but not yet implemented (see TC-021 in [docs/TEST-CASES.md](docs/TEST-CASES.md)). Once real a11y specs are added, tag them `@a11y` and they'll be picked up by this same script with no further wiring needed.
+
+---
+
 ## Code Quality
 
 - **ESLint** (`eslint.config.mts`) enforces TypeScript strictness and a set of Playwright best practices — no hard waits (`no-wait-for-timeout`), web-first assertions, no `test.only`/skipped tests, semantic locators over raw/nth-based ones, no `console` usage, and more.
 - **Prettier** enforces consistent formatting (tabs, single quotes, 80-char width).
 - **Husky + lint-staged** run ESLint and Prettier on staged files before each commit.
 
-### Config & Plugins
-
-| Tool / Package                               | Role in Framework                                                                                      |
-| :------------------------------------------- | :----------------------------------------------------------------------------------------------------- |
-| **`tsconfig.json`**                          | Defines path aliases (`@fixtures/*`, `@enums/*`, `@test-data/*`).                                      |
-| **`eslint-import-resolver-typescript`**      | Reads `tsconfig.json` so ESLint understands `@` aliases without throwing "cannot resolve path" errors. |
-| **`eslint-plugin-no-relative-import-paths`** | Automatically rewrites relative paths (`../../src/...`) to clean `@` aliases.                          |
-| **`eslint-plugin-import-x`**                 | Groups and alphabetizes imports into distinct blocks.                                                  |
+See [docs/TEST-FRAMEWORK.md](docs/TEST-FRAMEWORK.md) for the full lint-rule rationale and the path-alias system.
 
 ## CI/CD
 
-`.github/workflows/playwright.yml` runs on every push/PR to `main`/`master`: installs dependencies and browsers, runs `npx playwright test`, and uploads the HTML report as a workflow artifact (30-day retention).
+Three GitHub Actions workflows:
+
+- **`playwright.yml`** — runs on every push to `main`/`master` and on PRs targeting them: installs dependencies, lints (`npm run lint`), typechecks (`npm run typecheck`), installs browsers, runs `npm run test:ci` (`@regression` + `@e2e` + `@a11y`), and uploads the HTML report as a workflow artifact (30-day retention).
+- **`playwright-snapshots.yml`** — manual (`workflow_dispatch`) trigger that regenerates visual snapshots inside the Ubuntu runner and commits them back to the triggering branch. See [Visual Regression Testing](#visual-regression-testing) above.
+- **`pr-summary.yml`** — runs [PR-Agent](https://github.com/qodo-ai/pr-agent) (via Gemini) on PR open/reopen/ready-for-review to auto-generate the PR description. Auto-review and auto-improve are disabled by default, but either can be triggered on demand by commenting `/review` or `/improve` on the PR. Requires a `GEMINI_API_KEY` repo secret.

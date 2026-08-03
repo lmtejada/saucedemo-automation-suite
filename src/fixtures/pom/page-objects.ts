@@ -4,6 +4,7 @@ import { CartPage } from '@pages/cart.page';
 import { CheckoutCompletePage } from '@pages/checkout-complete-page';
 import { CheckoutStepOnePage } from '@pages/checkout-step-one.page';
 import { CheckoutStepTwoPage } from '@pages/checkout-step-two.page';
+import { InventoryDetailsPage } from '@pages/inventory-details.page';
 import { InventoryPage } from '@pages/inventory.page';
 import { LoginPage } from '@pages/login.page';
 
@@ -16,6 +17,8 @@ export type FrameworkFixtures = {
     loginPage: LoginPage;
     /** Inventory page object */
     inventoryPage: InventoryPage;
+    /** Inventory Item Details page object */
+    inventoryDetailsPage: InventoryDetailsPage;
     /** Cart page object */
     cartPage: CartPage;
     /** Checkout Step One page object */
@@ -37,6 +40,10 @@ export const test = base.extend<FrameworkFixtures>({
 
     inventoryPage: async ({ page }, use) => {
         await use(new InventoryPage(page));
+    },
+
+    inventoryDetailsPage: async ({ page }, use) => {
+        await use(new InventoryDetailsPage(page));
     },
 
     cartPage: async ({ page }, use) => {

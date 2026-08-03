@@ -134,6 +134,15 @@ const config = [
             // General JavaScript rules
             'no-console': 'error',
             'prefer-const': 'error',
+            'no-restricted-syntax': [
+                'error',
+                {
+                    selector:
+                        'CallExpression[callee.name="expect"] > AwaitExpression.arguments',
+                    message:
+                        'Do not await inside expect(); use await expect(x).resolves.toBe(y) instead.',
+                },
+            ],
 
             // Playwright-specific rules - Constitution enforcement
             'playwright/missing-playwright-await': 'error',
