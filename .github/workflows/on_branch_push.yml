@@ -1,10 +1,11 @@
-name: Lint, Typecheck & Smoke Tests
+name: Sanity Checks
 
 on:
     push:
 
 jobs:
     lint-and-typecheck:
+        name: Lint & Typecheck
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v4
@@ -20,6 +21,7 @@ jobs:
               run: npm run typecheck
 
     smoke-tests:
+        name: Smoke Tests
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v4

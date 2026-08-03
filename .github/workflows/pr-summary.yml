@@ -8,6 +8,7 @@ on:
 
 jobs:
     pr_agent_job:
+        name: PR Summary Agent
         # Avoid triggering the bot on comments made by other bots
         if: ${{ github.event.sender.type != 'Bot' }}
         runs-on: ubuntu-latest
