@@ -23,8 +23,8 @@
         "test:debug": "playwright test --project=chromium --debug",
         "test:ui": "playwright test --project=chromium --ui",
         "test:headed": "playwright test --project=chromium --headed --grep-invert @problematic",
-        "test:ci": "npm run test:regression && npm run test:e2e && npm run test:a11y",
-        "test:nightly": "npm test && npm run test:visual && npm run test:problematic",
+        "test:ci": "playwright test --grep \"@regression|@e2e|@a11y\" --project=chromium",
+        "test:main-gate": "playwright test --grep-invert @problematic",
         "report": "playwright show-report",
         "codegen": "playwright codegen"
     },

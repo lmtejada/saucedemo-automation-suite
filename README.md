@@ -4,7 +4,21 @@ Playwright + TypeScript test automation scaffold for [SauceDemo](https://www.sau
 
 **Stack:** Playwright · TypeScript · ESLint + Prettier · Husky + lint-staged · GitHub Actions
 
-**Documentation:** [Test Plan](docs/TEST-PLAN.md) (strategy, scope, risk register) · [Test Cases](docs/TEST-CASES.md) (coverage & defect log) · [Test Framework](docs/TEST-FRAMEWORK.md) (structure, conventions, and the _why_ behind non-obvious decisions)
+📊 **[Live test report →](https://lmtejada.github.io/saucedemo-automation-suite/report/)**
+
+---
+
+## At a glance
+
+|                   |                                                                                                                                                  |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Coverage**      | 59 tests across 11 spec files: smoke, regression, e2e, security, performance, accessibility, visual                                              |
+| **Defect log**    | 11 documented defects, incl. root-cause investigations in the [exploratory testing sessions](docs/TEST-CASES.md#exploratory-testing-session-log) |
+| **Cross-browser** | Chromium, Firefox, WebKit                                                                                                                        |
+| **CI/CD**         | Push: lint + typecheck + smoke.<br>Push to `main`: full regression + e2e + a11y gate.<br>PR to `main`: full suite across all 3 browsers.         |
+| **Design**        | Page Object Model, custom fixtures, storage-state auth/cart seeding, path-aliased architecture                                                   |
+| **Quality gates** | ESLint rules enforcing web-first assertions, no hard waits, no `test.only`, semantic locators                                                    |
+| **Docs**          | [Test Plan](docs/TEST-PLAN.md) · [Test Cases](docs/TEST-CASES.md) · [Test Framework](docs/TEST-FRAMEWORK.md)                                     |
 
 ---
 
@@ -35,20 +49,20 @@ ENVIRONMENT=staging npx playwright test
 ```
 saucedemo-automation-suite/
 ├── .github/workflows/    # CI: installs deps/browsers, runs the suite, uploads HTML report
-├── .husky/                # Runs lint-staged before each commit
+├── .husky/               # Runs lint-staged before each commit
 ├── src/
-│   ├── pages/              # Page Object Model
-│   ├── fixtures/            # Playwright fixture composition
+│   ├── pages/                # Page Object Model
+│   ├── fixtures/             # Playwright fixture composition
 │   ├── enums/ types/ utils/  # Shared constants, interfaces, helpers
-│   └── test-data/             # Static fixtures + data factories
+│   └── test-data/            # Static fixtures + data factories
 ├── tests/
-│   ├── functional/          # Feature-level specs
+│   ├── functional/           # Feature-level specs
 │   ├── e2e/                  # Full multi-page journey specs
-│   └── *.setup.ts              # Playwright setup projects (auth, cart seeding)
-├── eslint.config.mts      # Flat ESLint config
-├── playwright.config.ts   # Playwright projects, reporters, storage state setup
-├── tsconfig.json          # TypeScript compiler options + path aliases
-└── package.json           # Scripts and dependencies
+│   └── *.setup.ts            # Playwright setup projects (auth, cart seeding)
+├── eslint.config.mts     # Flat ESLint config
+├── playwright.config.ts  # Playwright projects, reporters, storage state setup
+├── tsconfig.json         # TypeScript compiler options + path aliases
+└── package.json          # Scripts and dependencies
 ```
 
 See [docs/TEST-FRAMEWORK.md](docs/TEST-FRAMEWORK.md) for the full structure, path-alias reference, and naming conventions.
@@ -57,25 +71,24 @@ See [docs/TEST-FRAMEWORK.md](docs/TEST-FRAMEWORK.md) for the full structure, pat
 
 ## Available Scripts
 
-| Command                                                  | Targeted Suite / Tag                                     | Operational Purpose                                                                                    |
-| :------------------------------------------------------- | :------------------------------------------------------- | :----------------------------------------------------------------------------------------------------- |
-| `npm test`                                               | `Full Suite` excluding `@visual` and `@problematic` tags | Runs the complete suite across all three core browser engines in parallel.                             |
-| `npm run test:chromium` / `test:firefox` / `test:webkit` | `Single Browser`                                         | Targets a specific engine during local debugging; excludes isolated profile tests.                     |
-| `npm run test:smoke`                                     | `@smoke`                                                 | Fast validation runner checking baseline happy-path core workflows.                                    |
-| `npm run test:regression`                                | `@regression`                                            | Deep-dive gate runner validating functional paths, security hooks, and asset mappings.                 |
-| `npm run test:e2e`                                       | `@e2e`                                                   | Automated cross-page workflows                                                                         |
-| `npm run test:a11y`                                      | `@a11y`                                                  | Executes dedicated automated WCAG accessibility audits using Axe-core.                                 |
-| `npm run test:visual`                                    | `@visual`                                                | Triggers pixel-perfect snapshot layout comparisons across all 3 browser engines.                       |
-| `npm run test:problematic`                               | `@problematic`                                           | Runs edge-case behavior suites on a single worker to isolate dynamic application flaws safely.         |
-| `npm run test:debug`                                     | N / A                                                    | Run in Playwright's debug/inspector mode                                                               |
-| `npm run test:ui`                                        | N / A                                                    | Run with Playwright's UI mode                                                                          |
-| `npm run test:headed`                                    | N / A                                                    | Run headed (excludes `@problematic` tests)                                                             |
-| `npm run test:ci`                                        | `@regression` + `@e2e` + `@a11y`                         | Executes deep functional validation for gating release testing readiness                               |
-| `npm run test:nightly`                                   | `Full Suite` + `@visual` + `@problematic`                | Executes the full suite across browsers, pixel snapshot comparisons, and single-worker edge-case tests |
-| `npm run report`                                         | N / A                                                    | Open the last HTML report                                                                              |
-| `npm run codegen -- <url>`                               | N / A                                                    | Record actions, generate locators                                                                      |
-| `npm run lint` / `lint:fix`                              | N / A                                                    | Lint (and auto-fix) the codebase                                                                       |
-| `npm run format`                                         | N / A                                                    | Format the codebase with Prettier                                                                      |
+| Command                                                  | Targeted Suite / Tag                                     | Operational Purpose                                                                            |
+| :------------------------------------------------------- | :------------------------------------------------------- | :--------------------------------------------------------------------------------------------- |
+| `npm test`                                               | `Full Suite` excluding `@visual` and `@problematic` tags | Runs the complete suite across all three core browser engines in parallel.                     |
+| `npm run test:chromium` / `test:firefox` / `test:webkit` | `Single Browser`                                         | Targets a specific engine during local debugging; excludes isolated profile tests.             |
+| `npm run test:smoke`                                     | `@smoke`                                                 | Fast validation runner checking baseline happy-path core workflows.                            |
+| `npm run test:regression`                                | `@regression`                                            | Deep-dive gate runner validating functional paths, security hooks, and asset mappings.         |
+| `npm run test:e2e`                                       | `@e2e`                                                   | Automated cross-page workflows                                                                 |
+| `npm run test:a11y`                                      | `@a11y`                                                  | Executes dedicated automated WCAG accessibility audits using Axe-core.                         |
+| `npm run test:visual`                                    | `@visual`                                                | Triggers pixel-perfect snapshot layout comparisons across all 3 browser engines.               |
+| `npm run test:problematic`                               | `@problematic`                                           | Runs edge-case behavior suites on a single worker to isolate dynamic application flaws safely. |
+| `npm run test:debug`                                     | N / A                                                    | Run in Playwright's debug/inspector mode                                                       |
+| `npm run test:ui`                                        | N / A                                                    | Run with Playwright's UI mode                                                                  |
+| `npm run test:headed`                                    | N / A                                                    | Run headed (excludes `@problematic` tests)                                                     |
+| `npm run test:ci`                                        | `@regression` + `@e2e` + `@a11y`                         | Executes deep functional validation for gating release testing readiness                       |
+| `npm run report`                                         | N / A                                                    | Open the last HTML report                                                                      |
+| `npm run codegen -- <url>`                               | N / A                                                    | Record actions, generate locators                                                              |
+| `npm run lint` / `lint:fix`                              | N / A                                                    | Lint (and auto-fix) the codebase                                                               |
+| `npm run format`                                         | N / A                                                    | Format the codebase with Prettier                                                              |
 
 Tag-based scripts rely on `@tag` annotations in test titles (e.g. `test('... @smoke', ...)`), which will be added as specs are written.
 
@@ -117,8 +130,10 @@ See [docs/TEST-FRAMEWORK.md](docs/TEST-FRAMEWORK.md) for the full lint-rule rati
 
 ## CI/CD
 
-Three GitHub Actions workflows:
+Five GitHub Actions workflows:
 
-- **`playwright.yml`** — runs on every push to `main`/`master` and on PRs targeting them: installs dependencies, lints (`npm run lint`), typechecks (`npm run typecheck`), installs browsers, runs `npm run test:ci` (`@regression` + `@e2e` + `@a11y`), and uploads the HTML report as a workflow artifact (30-day retention).
+- **`on_branch_push.yml`** — runs on every push, to any branch: lints (`npm run lint`), typechecks (`npm run typecheck`), and runs `npm run test:smoke` (`@smoke`, chromium only). Fast sanity check so breakages surface immediately, before a PR even exists.
+- **`playwright.yml`** — runs on every push to `main`/`master` (not on PRs — that's `test:main-gate`'s job, see below). Runs `npm run test:ci` (`@regression` + `@e2e` + `@a11y`, chromium only), uploads the HTML report as a workflow artifact (30-day retention) and deploys the report to GitHub Pages, published at **https://lmtejada.github.io/saucedemo-automation-suite/report/**.
+- **`on_main_pr.yml`** — runs on PRs targeting `main`. Runs `npm run test:main-gate` (the full suite excluding `@problematic`, across chromium/firefox/webkit). This is the exhaustive cross-browser check that catches breaking changes — including browser-specific ones — before they reach `main`. Its report is also deployed to GitHub Pages, published at **https://lmtejada.github.io/saucedemo-automation-suite/changes-report/**.
 - **`playwright-snapshots.yml`** — manual (`workflow_dispatch`) trigger that regenerates visual snapshots inside the Ubuntu runner and commits them back to the triggering branch. See [Visual Regression Testing](#visual-regression-testing) above.
 - **`pr-summary.yml`** — runs [PR-Agent](https://github.com/qodo-ai/pr-agent) (via Gemini) on PR open/reopen/ready-for-review to auto-generate the PR description. Auto-review and auto-improve are disabled by default, but either can be triggered on demand by commenting `/review` or `/improve` on the PR. Requires a `GEMINI_API_KEY` repo secret.
