@@ -1,7 +1,7 @@
 {
     "name": "saucedemo-automation-suite",
     "version": "1.0.0",
-    "description": "SauceDemo UI & Hybrid Automation Suite",
+    "description": "End-to-end test automation suite for SauceDemo built with Playwright + TypeScript, covering smoke, regression, e2e, a11y, and visual testing across Chromium, Firefox, and WebKit.",
     "author": "Laura Tejada",
     "license": "ISC",
     "scripts": {
