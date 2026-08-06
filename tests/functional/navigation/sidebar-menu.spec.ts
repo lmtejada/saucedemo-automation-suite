@@ -39,6 +39,39 @@ test.describe('navigation feature', () => {
         );
 
         test(
+            '[TC-039]: cart contents deliberately persist in localStorage after logout',
+            { tag: ['@regression', '@security'] },
+            async ({ page, inventoryPage }) => {
+                const firstProduct = await inventoryPage.getInventoryItemByName(
+                    INVENTORY_PRODUCTS[0].name
+                );
+                await firstProduct!.addToCart();
+                await expect(inventoryPage.nav.getCartCount()).resolves.toBe(1);
+
+                const cartBeforeLogout = await page.evaluate(() =>
+                    localStorage.getItem('cart-contents')
+                );
+                expect(cartBeforeLogout).not.toBeNull();
+
+                await inventoryPage.nav.openMenu();
+                await inventoryPage.nav.logoutLink.click();
+                await expect(page).toHaveURL(/\/(index\.html)?$/);
+
+                // Unlike the `session-username` cookie (TC-015), `cart-contents` is not
+                // cleared on logout. SauceDemo has no backend or per-user account model,
+                // so cart state is one value shared by the whole browser profile by
+                // design, not session-scoped data — see Session 2 in docs/TEST-CASES.md.
+                // Pinned here as an intentional assertion so either an app fix or an
+                // accidental regression in this suite's own storage-reset fixtures shows
+                // up as a failing test instead of an unnoticed assumption.
+                const cartAfterLogout = await page.evaluate(() =>
+                    localStorage.getItem('cart-contents')
+                );
+                expect(cartAfterLogout).toBe(cartBeforeLogout);
+            }
+        );
+
+        test(
             '[TC-032]: "All Items" link returns the user to the inventory page',
             { tag: '@regression' },
             async ({ page, cartPage, inventoryPage }) => {

@@ -10,15 +10,15 @@ Playwright + TypeScript test automation scaffold for [SauceDemo](https://www.sau
 
 ## At a glance
 
-|                   |                                                                                                                                                  |
-| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| **Coverage**      | 59 tests across 11 spec files: smoke, regression, e2e, security, performance, accessibility, visual                                              |
-| **Defect log**    | 11 documented defects, incl. root-cause investigations in the [exploratory testing sessions](docs/TEST-CASES.md#exploratory-testing-session-log) |
-| **Cross-browser** | Chromium, Firefox, WebKit                                                                                                                        |
-| **CI/CD**         | Push: lint + typecheck + smoke.<br>Push to `main`: full regression + e2e + a11y gate.<br>PR to `main`: full suite across all 3 browsers.         |
-| **Design**        | Page Object Model, custom fixtures, storage-state auth/cart seeding, path-aliased architecture                                                   |
-| **Quality gates** | ESLint rules enforcing web-first assertions, no hard waits, no `test.only`, semantic locators                                                    |
-| **Docs**          | [Test Plan](docs/TEST-PLAN.md) · [Test Cases](docs/TEST-CASES.md) · [Test Framework](docs/TEST-FRAMEWORK.md)                                     |
+|                   |                                                                                                                                                           |
+| ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Coverage**      | 59 tests across 11 spec files: smoke, regression, e2e, security, performance, accessibility, visual                                                       |
+| **Defect log**    | 11 documented defects, incl. root-cause investigations in the [exploratory testing sessions](docs/TEST-CASES.md#exploratory-testing-session-log)          |
+| **Cross-browser** | Chromium, Firefox, WebKit                                                                                                                                 |
+| **CI/CD**         | Push: lint + typecheck + smoke.<br>Push to `main`: full regression + e2e + a11y gate.<br>PR to `main`: full suite across all 3 browsers.                  |
+| **Design**        | Page Object Model, custom fixtures, storage-state auth/cart seeding, path-aliased architecture                                                            |
+| **Quality gates** | ESLint rules enforcing web-first assertions, no hard waits, no `test.only`, semantic locators                                                             |
+| **Docs**          | [App Overview](docs/SAUCEDEMO-OVERVIEW.md) · [Test Plan](docs/TEST-PLAN.md) · [Test Cases](docs/TEST-CASES.md) · [Test Framework](docs/TEST-FRAMEWORK.md) |
 
 ---
 

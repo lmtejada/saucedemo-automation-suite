@@ -38,6 +38,7 @@
     - [TC-026 — Full purchase journey for `performance_glitch_user` within SLA](#tc-026--full-purchase-journey-for-performance_glitch_user-within-sla)
 - [6. Navigation Menu](#6-navigation-menu)
     - [TC-015 — Clean application logout and session state reset](#tc-015--clean-application-logout-and-session-state-reset)
+    - [TC-039 — Cart contents deliberately persist in localStorage after logout](#tc-039--cart-contents-deliberately-persist-in-localstorage-after-logout)
     - [TC-032 — "All Items" link returns the user to the inventory page](#tc-032--all-items-link-returns-the-user-to-the-inventory-page)
     - [TC-033 — "Reset App State" restores inventory items to their original state](#tc-033--reset-app-state-restores-inventory-items-to-their-original-state)
 - [7. Visual Regression](#7-visual-regression)
@@ -1082,6 +1083,46 @@ Logging out via sidebar menu clears application session state and prevents unaut
 
 **Notes:**
 Ensures authentication guards and storage resets trigger cleanly.
+
+**Status:** ✅ Pass
+
+---
+
+### TC-039 — Cart contents deliberately persist in localStorage after logout
+
+**Feature:** Navigation Menu / Security<br>
+**Type:** Regression<br>
+**Priority:** 🟡 Medium<br>
+**Automated:** Yes<br>
+**Automation reference:** `tests/functional/navigation/sidebar-menu.spec.ts` — Scenario: "[TC-039]: cart contents deliberately persist in localStorage after logout"<br>
+**Tags:** `@regression` `@security`<br>
+
+**Preconditions:**
+
+- User authenticated and active on `/inventory.html`.
+
+**Test steps:**
+
+| Step | Action                                      | Expected result                                                  |
+| ---- | ------------------------------------------- | ---------------------------------------------------------------- |
+| 1    | Add an item to the cart                     | `cart-contents` is written to `localStorage`                     |
+| 2    | Log out via the sidebar menu                | `session-username` cookie is cleared (see TC-015)                |
+| 3    | Re-read `cart-contents` from `localStorage` | Value is unchanged from step 1 — it is **not** cleared by logout |
+
+**Expected result:**
+Logging out clears the `session-username` auth cookie (TC-015) but does not clear `cart-contents` from `localStorage`. This is pinned as intentional, expected behavior rather than left as an untested assumption.
+
+**Actual result:**
+Confirmed against the live app: `cart-contents` is identical before and after logout. SauceDemo has no backend or per-user account model, so cart state is a single value shared by the whole browser profile by design — it isn't session-scoped data the way the auth cookie is.
+
+**Test data:**
+
+| Field | Value                            |
+| ----- | -------------------------------- |
+| Item  | First product in `products.json` |
+
+**Notes:**
+Written in response to a question about whether "all user data" (cart items, drafts, identifiers) is removed on logout — e.g. in a shared/public-computer handoff scenario. It is not, for `cart-contents` specifically, and that's consistent with the Session 2 finding below: SauceDemo doesn't model per-user carts server-side, so there's no "other user's data" for a subsequent login to leak in the account-takeover sense — the shared value was never scoped to a user to begin with. This test exists so that if the app ever changes that behavior (or a regression in this suite's own storage-reset fixtures masks it), it shows up as a failing test rather than a silent assumption. The one real credential the app does manage — `session-username` — is already verified cleared by TC-015.
 
 **Status:** ✅ Pass
 
