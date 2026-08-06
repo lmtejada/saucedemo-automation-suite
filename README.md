@@ -10,15 +10,15 @@ Playwright + TypeScript test automation scaffold for [SauceDemo](https://www.sau
 
 ## At a glance
 
-|                   |                                                                                                                                                           |
-| ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Coverage**      | 59 tests across 11 spec files: smoke, regression, e2e, security, performance, accessibility, visual                                                       |
-| **Defect log**    | 11 documented defects, incl. root-cause investigations in the [exploratory testing sessions](docs/TEST-CASES.md#exploratory-testing-session-log)          |
-| **Cross-browser** | Chromium, Firefox, WebKit                                                                                                                                 |
-| **CI/CD**         | Push: lint + typecheck + smoke.<br>Push to `main`: full regression + e2e + a11y gate.<br>PR to `main`: full suite across all 3 browsers.                  |
-| **Design**        | Page Object Model, custom fixtures, storage-state auth/cart seeding, path-aliased architecture                                                            |
-| **Quality gates** | ESLint rules enforcing web-first assertions, no hard waits, no `test.only`, semantic locators                                                             |
-| **Docs**          | [App Overview](docs/SAUCEDEMO-OVERVIEW.md) · [Test Plan](docs/TEST-PLAN.md) · [Test Cases](docs/TEST-CASES.md) · [Test Framework](docs/TEST-FRAMEWORK.md) |
+|                   |                                                                                                                                                                                                        |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **Coverage**      | 71 tests across 15 spec files: smoke, regression, e2e, security, performance, accessibility, visual                                                                                                    |
+| **Defect log**    | 13 documented defects (11 functional + 2 accessibility, tracked separately), incl. root-cause investigations in the [exploratory testing sessions](docs/TEST-CASES.md#exploratory-testing-session-log) |
+| **Cross-browser** | Chromium, Firefox, WebKit                                                                                                                                                                              |
+| **CI/CD**         | Push: lint + typecheck + smoke.<br>Push to `main`: full regression + e2e + a11y gate.<br>PR to `main`: full suite across all 3 browsers.                                                               |
+| **Design**        | Page Object Model, custom fixtures, storage-state auth/cart seeding, path-aliased architecture                                                                                                         |
+| **Quality gates** | ESLint rules enforcing web-first assertions, no hard waits, no `test.only`, semantic locators                                                                                                          |
+| **Docs**          | [App Overview](docs/SAUCEDEMO-OVERVIEW.md) · [Test Plan](docs/TEST-PLAN.md) · [Test Cases](docs/TEST-CASES.md) · [Test Framework](docs/TEST-FRAMEWORK.md)                                              |
 
 ---
 
@@ -116,7 +116,7 @@ Never hand-commit snapshots generated on a local macOS/Windows machine — they 
 
 Accessibility checks run via the `@a11y` tag: `npm run test:a11y`.
 
-Today, only a placeholder framework check carries this tag — real WCAG 2.1 AA scans (via `@axe-core/playwright`) are planned but not yet implemented (see TC-021 in [docs/TEST-CASES.md](docs/TEST-CASES.md)). Once real a11y specs are added, tag them `@a11y` and they'll be picked up by this same script with no further wiring needed.
+WCAG 2.1 AA scans (via `@axe-core/playwright`) run against the login, checkout (steps one/two, complete), cart, and inventory pages, covering both their default state and key interaction states (validation error banners, empty cart, item added to cart, sort dropdown selected) — see `tests/accessibility/` and TC-021 in [docs/TEST-CASES.md](docs/TEST-CASES.md). Two known defects are documented and `test.skip`'d rather than left failing; see the [accessibility defect log](docs/TEST-CASES.md#accessibility-defect-log).
 
 ---
 
