@@ -11,6 +11,7 @@ import { NavigationComponent } from '@pages/components/navigation.component';
 export class InventoryPage {
     private readonly page: Page;
     public readonly nav: NavigationComponent;
+    public readonly pageContainer: Locator;
     public readonly productsSort: Locator;
     public readonly inventoryList: Locator;
     public readonly inventoryItems: Locator;
@@ -21,6 +22,7 @@ export class InventoryPage {
 
         // ==================== Locators ====================
 
+        this.pageContainer = page.getByTestId('inventory-container');
         this.productsSort = page.getByTestId('product-sort-container');
         this.inventoryList = page.getByTestId('inventory-list');
         this.inventoryItems = page.getByTestId('inventory-item');
@@ -30,7 +32,8 @@ export class InventoryPage {
 
     /**
      * Navigates to the inventory page.
-     * Waits for the page to reach DOM content loaded state.
+     * Waits for the page container to be visible, confirming the SPA has
+     * finished hydrating rather than just reaching DOM content loaded state.
      *
      * @returns {Promise<void>} Resolves when navigation is complete.
      */
@@ -38,6 +41,7 @@ export class InventoryPage {
         await this.page.goto('/inventory.html', {
             waitUntil: 'domcontentloaded',
         });
+        await this.pageContainer.waitFor({ state: 'visible' });
     }
 
     /**

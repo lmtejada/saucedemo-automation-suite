@@ -90,7 +90,7 @@ Bugs confirmed during this suite's development, each with the automated test cas
 | BUG-009 | 🟡 Medium   | Revisiting the login page while already authenticated still shows a live login form, and submitting new credentials silently overwrites the active session    | An already-authenticated user hitting the login route should be redirected back into their session, not re-shown a form that can silently hijack it | TC-034    |
 | BUG-011 | 🟡 Medium   | For `problem_user`, "Add to cart" is a no-op for exactly half the catalog (3 of 6 products), identically on the inventory and item-detail pages               | Add to cart should work identically for every product in the catalog                                                                                | TC-038    |
 
-**11 open defects**, all confirmed and reproduced, none faked or assumed — see [Session 1](TEST-CASES.md#session-1--problem_user-divergence-sweep) and [Session 3](TEST-CASES.md#session-3--problem_user-item-detail-page-investigation) in the exploratory log for how BUG-005 through BUG-011 were traced.
+**11 open defects**, all confirmed and reproduced, none faked or assumed — see [Session 1](TEST-CASES.md#session-1--problem_user-divergence-sweep) and [Session 3](TEST-CASES.md#session-3--problem_user-item-detail-page-investigation) in the exploratory log for how BUG-005 through BUG-011 were traced. Two further accessibility defects are tracked separately — see the [accessibility defect log](TEST-CASES.md#accessibility-defect-log).
 
 ---
 

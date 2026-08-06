@@ -78,8 +78,22 @@ export const ORDER_SUMMARY_DETAILS: OrderSummaryDetails[] = [
     { key: 'total', isLabelText: true },
 ];
 
+/**
+ * Enforce every key of CartTotalDetails is included
+ */
 export const CART_TOTAL_DETAILS: OrderSummaryDetails[] = [
     { key: 'subtotal', isLabelText: true },
     { key: 'tax', isLabelText: true },
     { key: 'total', isLabelText: true },
 ];
+
+/**
+ * Typed shape for a formatted accessibility violation.
+ */
+export interface FormattedViolation {
+    id: string;
+    impact?: string;
+    description: string;
+    helpUrl: string;
+    elements: string[];
+}

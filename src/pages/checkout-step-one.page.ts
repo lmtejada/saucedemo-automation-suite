@@ -28,7 +28,8 @@ export class CheckoutStepOnePage {
 
     /**
      * Navigates to the Checkout Step One page.
-     * Waits for the page to reach DOM content loaded state.
+     * Waits for the page container to be visible, confirming the SPA has
+     * finished hydrating rather than just reaching DOM content loaded state.
      *
      * @returns {Promise<void>} Resolves when navigation is complete.
      */
@@ -36,6 +37,7 @@ export class CheckoutStepOnePage {
         await this.page.goto('/checkout-step-one.html', {
             waitUntil: 'domcontentloaded',
         });
+        await this.formContainer.waitFor({ state: 'visible' });
     }
 
     /**

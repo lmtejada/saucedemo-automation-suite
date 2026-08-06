@@ -20,6 +20,7 @@
     - [9.2 Known-bug capture pattern (`test.skip` convention)](#92-known-bug-capture-pattern-testskip-convention)
     - [9.3 Assert immediately, not eventually](#93-assert-immediately-not-eventually)
     - [9.4 Verify tooling changes with a fresh process, not the IDE](#94-verify-tooling-changes-with-a-fresh-process-not-the-ide)
+    - [9.5 Accessibility scan conventions](#95-accessibility-scan-conventions)
 - [10. Decision log](#10-decision-log)
 
 ---
@@ -97,16 +98,16 @@ src/
 
 Every test carries at least one `@tag` in its `{ tag: ... }` option, matched by `--grep` in npm scripts.
 
-| Tag            | Meaning                                                             | Script                                                                                                         |
-| -------------- | ------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
-| `@smoke`       | Fast, happy-path checks of core workflows                           | `npm run test:smoke`                                                                                           |
-| `@regression`  | Broader functional and negative-path coverage                       | `npm run test:regression`                                                                                      |
-| `@e2e`         | Full multi-page journey tests (everything under `tests/e2e/`)       | `npm run test:e2e`                                                                                             |
-| `@security`    | Auth/session boundary checks (route bypass, session isolation)      | No dedicated script yet — reachable via `--grep @security`, otherwise swept up by `@regression`                |
-| `@performance` | SLA/latency assertions (e.g. `performance_glitch_user` timing)      | No dedicated script yet — always paired with `@problematic` today                                              |
-| `@problematic` | Tests that must run on a single worker / touch known-flaky profiles | `npm run test:problematic` (`--workers=1`)                                                                     |
-| `@visual`      | Snapshot comparisons via `toHaveScreenshot`                         | `npm run test:visual`                                                                                          |
-| `@a11y`        | Accessibility scans                                                 | `npm run test:a11y` — currently only a placeholder smoke check; real axe-core scans are still Planned (TC-021) |
+| Tag            | Meaning                                                             | Script                                                                                                                                       |
+| -------------- | ------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| `@smoke`       | Fast, happy-path checks of core workflows                           | `npm run test:smoke`                                                                                                                         |
+| `@regression`  | Broader functional and negative-path coverage                       | `npm run test:regression`                                                                                                                    |
+| `@e2e`         | Full multi-page journey tests (everything under `tests/e2e/`)       | `npm run test:e2e`                                                                                                                           |
+| `@security`    | Auth/session boundary checks (route bypass, session isolation)      | No dedicated script yet — reachable via `--grep @security`, otherwise swept up by `@regression`                                              |
+| `@performance` | SLA/latency assertions (e.g. `performance_glitch_user` timing)      | No dedicated script yet — always paired with `@problematic` today                                                                            |
+| `@problematic` | Tests that must run on a single worker / touch known-flaky profiles | `npm run test:problematic` (`--workers=1`)                                                                                                   |
+| `@visual`      | Snapshot comparisons via `toHaveScreenshot`                         | `npm run test:visual`                                                                                                                        |
+| `@a11y`        | Accessibility scans                                                 | `npm run test:a11y` — real `@axe-core/playwright` scans across `tests/accessibility/` (auth, checkout, cart, inventory), see TC-021 and §9.5 |
 
 `@security` and `@performance` existing without their own script is a real, current gap, not an oversight to gloss over — flagging it here so it's a deliberate backlog item rather than a surprise.
 
@@ -215,11 +216,24 @@ The notable rules enforced in `eslint.config.mts`, and why each exists (not an e
 
 **Why:** Hit this twice. The editor's language server caches `tsconfig.json` path resolution and doesn't reliably pick up newly-added aliases without an explicit restart ("ESLint: Restart ESLint Server"). This produced confusing false-positive/false-negative diagnostics in the editor (e.g., a newly-added `@utils/*` alias briefly misclassified as an unresolved external import) that a fresh `npx eslint` process didn't reproduce at all.
 
+### 9.5 Accessibility scan conventions
+
+**Rule — page objects wait on a real `data-test` container after navigation, not just `domcontentloaded`:** Every `open()` in `src/pages/*.ts` does `goto(url, { waitUntil: 'domcontentloaded' })` followed by `this.pageContainer.waitFor({ state: 'visible' })`, where `pageContainer` is the page's actual container element (verified against the live DOM, e.g. `login-container`, `inventory-container`, `checkout-summary-container` — not a guessed selector).
+
+**Why:** SauceDemo is client-rendered — `domcontentloaded` only guarantees the initial HTML shell parsed, not that the app has mounted its content. `page.evaluate()` (what `@axe-core/playwright`'s `analyze()` uses to inject) has no auto-wait and can run against a stale execution context mid-hydration, throwing `Execution context was destroyed, most likely because of a navigation` — disproportionately on Firefox/WebKit, which are stricter than Chromium about invalidating a stale context (Chromium's CDP-based `evaluate` silently retries). Every other action in the suite (`click`/`fill`/`expect`) auto-waits for actionability and never hit this race, which is why it only surfaced once accessibility scans were added.
+
+**Rule — prefer `test.skip` for a known violation that blocks an entire scan, `.disableRules([...])` for one that shouldn't block scanning the rest of the page:** When a scan's assertion is entirely blocked by one already-logged accessibility defect, skip the test (`test.skip(true, 'Bug found: ... - see A11Y-0XX')`), same pattern as §9.2. When the test's purpose is to verify a _different_ interaction state (e.g. an option now selected) and the known defect is incidental to that state rather than the point of the test, use `makeAxeBuilder().disableRules([...])` instead — this keeps the offending element in scope for every other rule, so a genuinely new violation introduced by that state still fails the test. Avoid `.exclude(selector)` for this purpose: it removes the element from the scan entirely, which would also hide an unrelated new violation on that same element.
+
+**How to apply:** See `tests/accessibility/inventory.spec.ts` — the default-state and item-added-to-cart scans `test.skip` against A11Y-002 (the scan's whole point is scanning the page, and the known defect blocks that outright), while the sort-dropdown-selected scan uses `.disableRules(['select-name'])` (the point of that test is the "option selected" state, and the missing-label issue on the dropdown is orthogonal to it).
+
 ---
 
 ## 10. Decision log
 
 Append-only. One entry per non-obvious call, newest first.
+
+**2026-08-06 — Every page object's `open()` now waits on a real container locator, not just `domcontentloaded`**
+Building the `@a11y` suite surfaced `Execution context was destroyed, most likely because of a navigation` on Firefox/WebKit in `checkout.spec.ts`, traced to `page.evaluate()` (used by `@axe-core/playwright`) racing SauceDemo's post-`domcontentloaded` hydration. Fixed by adding a `pageContainer` locator to all 6 page objects and waiting on it after `goto()`, rather than special-casing the fix inside the accessibility fixture — the race was latent in every page object already, `@axe-core/playwright` just happened to be the first caller without Playwright's built-in actionability auto-wait to mask it. See §9.5.
 
 **2026-07-31 — `functional/lifecycle/` renamed to `functional/navigation/`, consolidated into one spec file**
 The folder started as `lifecycle/logout.spec.ts` for TC-015 alone. "Lifecycle" read as ambiguous (app/component lifecycle, not user session) once two more sidebar-menu test cases (TC-032 "All Items", TC-033 "Reset App State") were added, so the folder and TEST-CASES.md module 6 were renamed to "Navigation Menu" — a name that describes the UI surface under test rather than a vague concept. All three cases exercise the same hamburger sidebar component, so they were kept in a single `sidebar-menu.spec.ts` file rather than split one-file-per-action, matching the `functional/` convention of one file per feature area (see `shopping-cart.spec.ts` for the same reasoning applied to the cart page).

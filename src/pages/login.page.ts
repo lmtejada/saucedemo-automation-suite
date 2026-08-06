@@ -8,6 +8,7 @@ import { TestUser } from '@app-types/app';
  */
 export class LoginPage {
     private readonly page: Page;
+    public readonly pageContainer: Locator;
     public readonly usernameInput: Locator;
     public readonly passwordInput: Locator;
     public readonly loginButton: Locator;
@@ -18,6 +19,7 @@ export class LoginPage {
 
         // ==================== Locators ====================
 
+        this.pageContainer = page.getByTestId('login-container');
         this.usernameInput = page.getByRole('textbox', { name: 'username' });
         this.passwordInput = page.getByRole('textbox', { name: 'password' });
         this.loginButton = page.getByRole('button', { name: 'login' });
@@ -28,7 +30,8 @@ export class LoginPage {
 
     /**
      * Navigates to the login page.
-     * Waits for the page to reach DOM content loaded state.
+     * Waits for the page container to be visible, confirming the SPA has
+     * finished hydrating rather than just reaching DOM content loaded state.
      *
      * @returns {Promise<void>} Resolves when navigation is complete.
      */
@@ -36,6 +39,7 @@ export class LoginPage {
         await this.page.goto('/', {
             waitUntil: 'domcontentloaded',
         });
+        await this.pageContainer.waitFor({ state: 'visible' });
     }
 
     /**

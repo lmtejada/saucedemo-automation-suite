@@ -9,6 +9,7 @@ import { NavigationComponent } from './components/navigation.component';
 export class CheckoutCompletePage {
     private readonly page: Page;
     public readonly nav: NavigationComponent;
+    public readonly pageContainer: Locator;
     public readonly contentImage: Locator;
     public readonly contentHeader: Locator;
     public readonly contentText: Locator;
@@ -18,6 +19,7 @@ export class CheckoutCompletePage {
         this.page = page;
         this.nav = new NavigationComponent(page);
 
+        this.pageContainer = page.getByTestId('checkout-complete-container');
         this.contentImage = page.getByTestId('pony-express');
         this.contentHeader = page.getByTestId('complete-header');
         this.contentText = page.getByTestId('complete-text');
@@ -26,7 +28,8 @@ export class CheckoutCompletePage {
 
     /**
      * Navigates to the Checkout Complete page.
-     * Waits for the page to reach DOM content loaded state.
+     * Waits for the content header to be visible, confirming the SPA has
+     * finished hydrating rather than just reaching DOM content loaded state.
      *
      * @returns {Promise<void>} Resolves when navigation is complete.
      */
@@ -34,6 +37,7 @@ export class CheckoutCompletePage {
         await this.page.goto('/checkout-complete.html', {
             waitUntil: 'domcontentloaded',
         });
+        await this.pageContainer.waitFor({ state: 'visible' });
     }
 
     /**
