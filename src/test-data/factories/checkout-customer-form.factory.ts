@@ -1,9 +1,17 @@
+import { faker } from '@faker-js/faker';
+
 import { CustomerForm } from '@app-types/app';
 
+/**
+ * Generated once at module load, not per-call: every test importing
+ * FORM_DEFAULT_DATA within the same run sees the same values, so
+ * equality checks against it (e.g. toEqual(FORM_DEFAULT_DATA)) stay
+ * internally consistent, while the values themselves still vary run to run.
+ */
 export const FORM_DEFAULT_DATA: CustomerForm = {
-    firstName: 'John',
-    lastName: 'Doe',
-    postalCode: '10255',
+    firstName: faker.person.firstName(),
+    lastName: faker.person.lastName(),
+    postalCode: faker.location.zipCode(),
 };
 
 /**

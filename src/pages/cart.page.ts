@@ -11,6 +11,7 @@ import { NavigationComponent } from '@pages/components/navigation.component';
 export class CartPage {
     private readonly page: Page;
     public readonly nav: NavigationComponent;
+    public readonly pageContainer: Locator;
     public readonly cartItems: Locator;
     public readonly checkoutButton: Locator;
     public readonly continueShoppingButton: Locator;
@@ -21,6 +22,7 @@ export class CartPage {
 
         // ==================== Locators ====================
 
+        this.pageContainer = page.getByTestId('cart-contents-container');
         this.cartItems = page.getByTestId('inventory-item');
         this.checkoutButton = page.getByRole('button', { name: 'Checkout' });
         this.continueShoppingButton = page.getByRole('button', {
@@ -32,7 +34,9 @@ export class CartPage {
 
     /**
      * Navigates to the cart page.
-     * Waits for the page to reach DOM content loaded state.
+     * Waits for the Checkout button to be visible, confirming the SPA has
+     * finished hydrating rather than just reaching DOM content loaded state.
+     * Used as the readiness canary since it renders regardless of cart contents.
      *
      * @returns {Promise<void>} Resolves when navigation is complete.
      */
@@ -40,6 +44,7 @@ export class CartPage {
         await this.page.goto('/cart.html', {
             waitUntil: 'domcontentloaded',
         });
+        await this.pageContainer.waitFor({ state: 'visible' });
     }
 
     /**

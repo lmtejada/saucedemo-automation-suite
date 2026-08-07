@@ -1,24 +1,25 @@
-name: Playwright Tests
+name: Main Gate
+
 on:
-    push:
+    pull_request:
         branches: [main]
 
 jobs:
-    playwright-tests:
-        name: Playwright Tests
-        timeout-minutes: 60
+    main-gate:
+        name: Check Changes introduced to Main branch (cross-browser)
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v4
             - uses: actions/setup-node@v4
               with:
                   node-version: 22.22.3
+                  cache: 'npm'
             - name: Install dependencies
               run: npm ci
             - name: Install Playwright Browsers
               run: npx playwright install --with-deps
-            - name: Run Playwright tests
-              run: npm run test:ci
+            - name: Run main gate test suite
+              run: npm run test:main-gate
               env:
                   APP_URL: ${{ vars.APP_URL }}
                   PERFORMANCE_USER_NAME: ${{ secrets.PERFORMANCE_USER_NAME }}
@@ -29,11 +30,9 @@ jobs:
               uses: actions/upload-artifact@v4
               if: ${{ !cancelled() }}
               with:
-                  name: playwright-report
+                  name: main-gate-report
                   path: playwright-report/
                   retention-days: 30
-            # PR-to-main gets its own report via on_main_pr.yml (Main Gate) at changes-report/.
-            # This path is just the latest push-to-main result, overwritten every run — no history.
             - name: Deploy report to GitHub Pages
               id: deploy-pages
               if: ${{ !cancelled() }}
@@ -41,10 +40,10 @@ jobs:
               with:
                   github_token: ${{ secrets.GITHUB_TOKEN }}
                   publish_dir: ./playwright-report
-                  destination_dir: report
+                  destination_dir: changes-report
                   keep_files: true
             # Chained to the deploy step's own outcome, not just !cancelled(), so a failed
             # deploy (e.g. a gh-pages push race) doesn't print a link to a stale report.
             - name: Summarize report URL
               if: ${{ !cancelled() && steps.deploy-pages.outcome == 'success' }}
-              run: echo "📊 [View the test report](https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/report/)" >> "$GITHUB_STEP_SUMMARY"
+              run: echo "📊 [View the cross-browser test report](https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/changes-report/)" >> "$GITHUB_STEP_SUMMARY"

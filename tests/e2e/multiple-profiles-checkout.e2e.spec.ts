@@ -61,7 +61,7 @@ test.describe('checkout journey with multiple users profile @e2e', () => {
 
         test(
             '[TC-028]: Complete full checkout purchase flow',
-            { tag: '@e2e' },
+            { tag: ['@e2e', '@problematic'] },
             async ({
                 page,
                 inventoryPage,

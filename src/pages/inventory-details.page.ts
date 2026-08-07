@@ -11,6 +11,7 @@ import { NavigationComponent } from '@pages/components/navigation.component';
 export class InventoryDetailsPage {
     private readonly page: Page;
     public readonly nav: NavigationComponent;
+    public readonly pageContainer: Locator;
     public readonly item: InventoryItemComponent;
     public readonly backToProductsButton: Locator;
 
@@ -24,6 +25,7 @@ export class InventoryDetailsPage {
 
         // ==================== Locators ====================
 
+        this.pageContainer = page.getByTestId('inventory-container');
         this.backToProductsButton = page.getByTestId('back-to-products');
     }
 
@@ -31,7 +33,8 @@ export class InventoryDetailsPage {
 
     /**
      * Navigates to the item detail page.
-     * Waits for the page to reach DOM content loaded state.
+     * Waits for the page container to be visible, confirming the SPA has
+     * finished hydrating rather than just reaching DOM content loaded state.
      *
      * @param {number} [id] - The product id to open (the `id` query param on /inventory-item.html). Omit to navigate without one.
      * @returns {Promise<void>} Resolves when navigation is complete.
@@ -41,6 +44,7 @@ export class InventoryDetailsPage {
         await this.page.goto(`/inventory-item.html${query}`, {
             waitUntil: 'domcontentloaded',
         });
+        await this.pageContainer.waitFor({ state: 'visible' });
     }
 
     /**

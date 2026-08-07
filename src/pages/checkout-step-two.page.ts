@@ -19,6 +19,7 @@ import { buildLabelTestId, parsePriceString } from '@utils/app';
 export class CheckoutStepTwoPage {
     private readonly page: Page;
     public readonly nav: NavigationComponent;
+    public readonly pageContainer: Locator;
     public readonly cartItems: Locator;
     public readonly finishButton: Locator;
     public readonly cancelButton: Locator;
@@ -29,6 +30,7 @@ export class CheckoutStepTwoPage {
 
         // ==================== Locators ====================
 
+        this.pageContainer = page.getByTestId('checkout-summary-container');
         this.cartItems = page.getByTestId('inventory-item');
         this.finishButton = page.getByRole('button', { name: 'Finish' });
         this.cancelButton = page.getByRole('button', { name: 'Cancel' });
@@ -38,7 +40,8 @@ export class CheckoutStepTwoPage {
 
     /**
      * Navigates to the Checkout Step Two page.
-     * Waits for the page to reach DOM content loaded state.
+     * Waits for the page container to be visible, confirming the SPA has
+     * finished hydrating rather than just reaching DOM content loaded state.
      *
      * @returns {Promise<void>} Resolves when navigation is complete.
      */
@@ -46,6 +49,7 @@ export class CheckoutStepTwoPage {
         await this.page.goto('/checkout-step-two.html', {
             waitUntil: 'domcontentloaded',
         });
+        await this.pageContainer.waitFor({ state: 'visible' });
     }
 
     /**

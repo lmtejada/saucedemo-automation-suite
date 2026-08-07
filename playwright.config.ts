@@ -39,7 +39,7 @@ export default defineConfig({
 
     /* Reporter configuration */
     reporter: process.env.CI
-        ? [['blob'], ['html', { open: 'never' }]]
+        ? [['html', { open: 'never' }]]
         : [['html', { open: 'on-failure' }]],
 
     /* Shared settings for all projects */

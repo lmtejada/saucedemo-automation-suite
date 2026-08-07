@@ -113,7 +113,7 @@ test.describe('shopping cart feature', () => {
 
         test(
             '[TC-009]: add products from the inventory page and navigate to the cart verifying the exact items were added',
-            { tag: '@smoke' },
+            { tag: ['@smoke', '@regression'] },
             async ({ inventoryPage, cartPage }) => {
                 await inventoryPage.open();
 
