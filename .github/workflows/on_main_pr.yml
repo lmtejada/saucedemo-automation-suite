@@ -34,6 +34,7 @@ jobs:
                   path: playwright-report/
                   retention-days: 30
             - name: Deploy report to GitHub Pages
+              id: deploy-pages
               if: ${{ !cancelled() }}
               uses: peaceiris/actions-gh-pages@v4
               with:
@@ -41,6 +42,8 @@ jobs:
                   publish_dir: ./playwright-report
                   destination_dir: changes-report
                   keep_files: true
+            # Chained to the deploy step's own outcome, not just !cancelled(), so a failed
+            # deploy (e.g. a gh-pages push race) doesn't print a link to a stale report.
             - name: Summarize report URL
-              if: ${{ !cancelled() }}
+              if: ${{ !cancelled() && steps.deploy-pages.outcome == 'success' }}
               run: echo "📊 [View the cross-browser test report](https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/changes-report/)" >> "$GITHUB_STEP_SUMMARY"

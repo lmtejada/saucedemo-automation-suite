@@ -200,29 +200,36 @@ Given that, TC-017 intentionally does not assert against the exact ~10-minute va
 | Trigger                     | Command / Tag                                               | Scope Included                                       | Pipeline Target Action                                                                                                            |
 | :-------------------------- | :---------------------------------------------------------- | :--------------------------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------- |
 | **Every Push (any branch)** | `npm run lint` / `npm run typecheck` / `npm run test:smoke` | Lint + typecheck + `@smoke`                          | Sanity checks — fast feedback loop validating code quality and core happy-path purchase paths before a PR even exists.            |
-| **Push to `main`/`master`** | `npm run test:ci`                                           | `@regression` + `@e2e` + `@a11y`                     | Executes deep functional validation, e2e critical user journeys, routing security checks, and automated WCAG accessibility scans. |
+| **Push to `main`**          | `npm run test:ci`                                           | `@regression` + `@e2e` + `@a11y`                     | Executes deep functional validation, e2e critical user journeys, routing security checks, and automated WCAG accessibility scans. |
 | **PR to `main`**            | `npm run test:main-gate`                                    | `Full Suite` (all browsers) excluding `@problematic` | Exhaustive cross-browser run to catch breaking changes — including visual and browser-specific ones — before they reach `main`.   |
 
 ### 8.2 Failure handling & reporting architecture
 
-- **Gating Strategy:** Pull Request merging is strictly blocked dynamically via GitHub branch protection rules if any workflow step within the `test:smoke`, `test:ci`, or `test:main-gate` pipeline suites reports a failure status.
-- **Artifact Retention:** Playwright trace logs, execution console footprints, videos, and native HTML reports are packaged securely as compressed zip workspace artifacts for every unique pipeline execution.
+- **Gating Strategy:** Pull Request merging is blocked via a GitHub branch protection rule on `main` requiring the following status checks to pass, all of which run on the PR itself:
+    - `Lint & Typecheck` — from `on_branch_push.yml`
+    - `Smoke Tests` (`test:smoke`) — from `on_branch_push.yml`
+    - `Check Changes introduced to Main branch (cross-browser)` (`test:main-gate`) — from `on_main_pr.yml`
+
+    `test:ci` (`playwright.yml`) is deliberately left out of the gate: it only runs on push to `main`, after a merge already happened, so it can't block one.
+
+- **Artifact Retention:** Every pipeline run uploads the Playwright HTML report as a single GitHub Actions artifact (30-day retention). The report is self-contained — it embeds traces, videos, and screenshots for any failed or retried test directly inside it — so one artifact download is enough to fully debug a CI failure without a local re-run. Browser console log capture is not yet implemented.
 - **Reporting Access:** The framework triggers an automated pipeline step upon test completion to output a link to the Playwright report overview directly inside the active GitHub Actions console runner.
-- **Alert Escalation:** Automated status notifications are pushed immediately via GitHub Actions triggers directly to the repository contributors on step failures, detailing the specific script stack trace breakdown.
+- **Alert Escalation (nice-to-have):** Pushing automated failure notifications (e.g. a Slack message or PR comment with the failing stack trace) to contributors would save a trip to the Actions tab. Today the only signal is GitHub's own default behavior — a failed check on the PR and email notifications to repo watchers.
 
 ### 8.3 Execution script matrix
 
-| Command                                                  | Targeted Tag                     | Operational Purpose                                                                                                |
-| :------------------------------------------------------- | :------------------------------- | :----------------------------------------------------------------------------------------------------------------- |
-| `npm test`                                               | `Full Suite`                     | Runs the complete suite across all three core browser engines in parallel, excluding tags @visual and @problematic |
-| `npm run test:chromium` / `test:firefox` / `test:webkit` | `Single Browser`                 | Targets a specific engine during local debugging; excludes isolated profile tests.                                 |
-| `npm run test:smoke`                                     | `@smoke`                         | Fast validation runner checking baseline happy-path core workflows.                                                |
-| `npm run test:regression`                                | `@regression`                    | Deep-dive gate runner validating functional paths, security hooks, and asset mappings.                             |
-| `npm run test:e2e`                                       | `@e2e`                           | Executes critical user journey behaviors                                                                           |
-| `npm run test:a11y`                                      | `@a11y`                          | Executes dedicated automated WCAG accessibility audits using Axe-core.                                             |
-| `npm run test:visual`                                    | `@visual`                        | Triggers pixel-perfect snapshot layout comparisons using the native Playwright engine.                             |
-| `npm run test:problematic`                               | `@problematic`                   | Runs edge-case behavior suites on a single worker to isolate dynamic application flaws safely.                     |
-| `npm run test:ci`                                        | `@regression` + `@e2e` + `@a11y` | Executes deep functional validation for gating release testing readiness                                           |
+| Command                                                  | Targeted Tag                        | Operational Purpose                                                                                                                                                                                                   |
+| :------------------------------------------------------- | :---------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `npm test`                                               | `Full Suite`                        | Runs the complete suite across all three core browser engines in parallel, excluding tags @visual and @problematic                                                                                                    |
+| `npm run test:main-gate`                                 | `Full Suite` (excl. `@problematic`) | PR-to-`main` gate (`on_main_pr.yml`). Unlike `npm test`, this _includes_ `@visual` — it's the one exhaustive, all-tags, all-browsers run in the pipeline, reserved for the last check before code reaches `main`.     |
+| `npm run test:chromium` / `test:firefox` / `test:webkit` | `Single Browser`                    | Targets a specific engine during local debugging; excludes isolated profile tests.                                                                                                                                    |
+| `npm run test:smoke`                                     | `@smoke`                            | Fast validation runner checking baseline happy-path core workflows.                                                                                                                                                   |
+| `npm run test:regression`                                | `@regression`                       | Deep-dive gate runner validating functional paths, security hooks, and asset mappings.                                                                                                                                |
+| `npm run test:e2e`                                       | `@e2e`                              | Executes critical user journey behaviors                                                                                                                                                                              |
+| `npm run test:a11y`                                      | `@a11y`                             | Executes dedicated automated WCAG accessibility audits using Axe-core.                                                                                                                                                |
+| `npm run test:visual`                                    | `@visual`                           | Triggers pixel-perfect snapshot layout comparisons using the native Playwright engine.                                                                                                                                |
+| `npm run test:problematic`                               | `@problematic`                      | Runs edge-case behavior suites on a single worker to isolate dynamic application flaws safely.                                                                                                                        |
+| `npm run test:ci`                                        | `@regression` + `@e2e` + `@a11y`    | Push-to-`main` health check (`playwright.yml`). Chromium-only, tag-scoped — a fast post-merge confirmation, not a full re-audit; the exhaustive cross-browser check already happened at the `test:main-gate` PR gate. |
 
 ---
 

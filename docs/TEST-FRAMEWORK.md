@@ -232,6 +232,9 @@ The notable rules enforced in `eslint.config.mts`, and why each exists (not an e
 
 Append-only. One entry per non-obvious call, newest first.
 
+**2026-08-07 — `test:ci` (push to `main`) and `test:main-gate` (PR to `main`) deliberately run different scopes**
+Two separate workflows own two separate gates: `on_main_pr.yml` runs `test:main-gate` on every PR into `main`, and `playwright.yml` runs `test:ci` on every push to `main` (i.e. after merge). They aren't the same suite at two trigger points — `test:main-gate` (`playwright test --grep-invert @problematic`) has no `--project` flag, so it runs every tag except `@problematic` — including `@visual` — across all three browser engines. `test:ci` (`playwright test --grep "@regression|@e2e|@a11y" --project=chromium`) is deliberately narrower: one browser, three tags, no visual regression. The intent is that the expensive, exhaustive run happens once, pre-merge, when it can still block a bad PR; the post-merge run only needs to confirm `main` is still healthy, so it stays fast rather than repeating the full cross-browser/visual sweep on every push. Each workflow also deploys its report to its own Pages path (`changes-report/` vs `report/`) so the two never overwrite each other.
+
 **2026-08-06 — Every page object's `open()` now waits on a real container locator, not just `domcontentloaded`**
 Building the `@a11y` suite surfaced `Execution context was destroyed, most likely because of a navigation` on Firefox/WebKit in `checkout.spec.ts`, traced to `page.evaluate()` (used by `@axe-core/playwright`) racing SauceDemo's post-`domcontentloaded` hydration. Fixed by adding a `pageContainer` locator to all 6 page objects and waiting on it after `goto()`, rather than special-casing the fix inside the accessibility fixture — the race was latent in every page object already, `@axe-core/playwright` just happened to be the first caller without Playwright's built-in actionability auto-wait to mask it. See §9.5.
 
