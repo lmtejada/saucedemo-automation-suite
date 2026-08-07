@@ -21,6 +21,7 @@
     - [9.3 Assert immediately, not eventually](#93-assert-immediately-not-eventually)
     - [9.4 Verify tooling changes with a fresh process, not the IDE](#94-verify-tooling-changes-with-a-fresh-process-not-the-ide)
     - [9.5 Accessibility scan conventions](#95-accessibility-scan-conventions)
+    - [9.6 Commit message & branch name conventions (Husky hooks)](#96-commit-message--branch-name-conventions-husky-hooks)
 - [10. Decision log](#10-decision-log)
 
 ---
@@ -35,7 +36,7 @@ This document is the deep reference for how the automation suite is built and _w
 
 The README stays a 60-second quick-start (install, run, script table); anything that needs "why" lives here instead.
 
-**Stack:** Playwright + TypeScript, POM (Page Object Model) with a fixture-composition layer, ESLint (flat config) + Prettier, Husky + lint-staged, GitHub Actions.
+**Stack:** Playwright + TypeScript, POM (Page Object Model) with a fixture-composition layer, ESLint (flat config) + Prettier, Husky + lint-staged + commitlint, GitHub Actions.
 
 ---
 
@@ -143,6 +144,8 @@ auth (runs auth.setup.ts)
 - **Test titles:** prefixed with the TC number when the test automates a documented TEST-CASES.md entry — `'[TC-012]: Complete full checkout purchase flow'`. Tests without a dedicated TC use a generic label instead: `[Smoke]`, `[Regression]`. This makes automation ↔ documentation traceability a `grep -rn "TC-012"` away in both directions, rather than relying on the "Automation reference" field in TEST-CASES.md staying manually accurate (it doesn't, reliably).
 - **Describe-block shape:** an outer `test.describe('<feature> feature')`, with inner blocks tagged by concern — `functional tests @regression`, `test user journey @smoke`, `validation scenarios @regression`, `<profile> feature quirks @regression`.
 - **Page objects:** one `<Page>Page` class per page (`CartPage`, `CheckoutStepOnePage`); reusable per-row pieces are `<Thing>Component` (`CartItemComponent`, `InventoryItemComponent`), constructed with a `rootLocator` so the same component class works for any matching row.
+- **Commit messages:** Conventional Commits format (`<type>: <description>`) — see §9.6 for the enforced type list and rationale.
+- **Branch names:** `<type>/<description>`, `<type>` one of `feat`, `fix`, `release`, `epic` (`main` itself is exempt) — see §9.6.
 
 ---
 
@@ -226,11 +229,28 @@ The notable rules enforced in `eslint.config.mts`, and why each exists (not an e
 
 **How to apply:** See `tests/accessibility/inventory.spec.ts` — the default-state and item-added-to-cart scans `test.skip` against A11Y-002 (the scan's whole point is scanning the page, and the known defect blocks that outright), while the sort-dropdown-selected scan uses `.disableRules(['select-name'])` (the point of that test is the "option selected" state, and the missing-label issue on the dropdown is orthogonal to it).
 
+### 9.6 Commit message & branch name conventions (Husky hooks)
+
+**Rule — commit messages:** `commitlint.config.js` extends `@commitlint/config-conventional`; a `commit-msg` Husky hook (`.husky/commit-msg`, runs `npx commitlint --edit "$1"`) checks every local commit against it. Allowed types: `build`, `chore`, `ci`, `docs`, `feat`, `fix`, `perf`, `refactor`, `revert`, `style`, `test`.
+
+**Rule — branch names:** a `pre-push` Husky hook (`.husky/pre-push`) checks the current branch name against `^(feat|fix|release|epic)/.+`, exempting `main`, and blocks the push if it doesn't match. Backed up server-side by a GitHub repository ruleset (Settings → Rules → Rulesets): targets all branches, excludes `main`, `feat/**`, `fix/**`, `release/**`, `epic/**` from the restriction, with **Restrict creations** enabled — so a branch outside those patterns can't be created at all, regardless of whether the local hook ran.
+
+**Why:** this repo merges PRs into `main` with regular merges, not squash — every individual commit message lands in `main`'s permanent history, not just the PR title. That makes commit-message quality worth enforcing at commit time rather than only at merge time. Branch prefixes exist so a branch name says what kind of work it is without opening it — `feat/`, `fix/`, `release/`, `epic/`. Branch names get the server-side backstop and commit messages don't, because a ruleset can enforce a name pattern on creation, but there's no equivalent GitHub-native way to enforce individual commit message format on a regular (non-squash) merge.
+
 ---
 
 ## 10. Decision log
 
 Append-only. One entry per non-obvious call, newest first.
+
+**2026-08-07 — GitHub repository ruleset added as a server-side backstop for branch-name prefixes**
+Closes the gap noted in the entry below: a ruleset targeting all branches, excluding `main`, `feat/**`, `fix/**`, `release/**`, `epic/**`, with **Restrict creations** enabled. Branch creation outside those patterns is now blocked by GitHub itself, not just the local `pre-push` hook — this one can't be bypassed with `--no-verify`. Commit-message linting (via `commitlint`) still has no equivalent server-side backstop; see §9.6.
+
+**2026-08-07 — Branch-name prefixes (`feat/`, `fix/`, `release/`, `epic/`) enforced via a `pre-push` Husky hook**
+Checks the current branch name against `^(feat|fix|release|epic)/.+`, exempting `main`. See the entry above for the GitHub ruleset added as a server-side backstop, and §9.6.
+
+**2026-08-07 — Conventional Commits enforced via `commitlint` + a `commit-msg` Husky hook; the CI backstop was added then reverted**
+Added `commitlint.config.js` (extends `@commitlint/config-conventional`) and a `.husky/commit-msg` hook. Enforcement is local-only for now. See §9.6.
 
 **2026-08-07 — `test:ci` (push to `main`) and `test:main-gate` (PR to `main`) deliberately run different scopes**
 Two separate workflows own two separate gates: `on_main_pr.yml` runs `test:main-gate` on every PR into `main`, and `playwright.yml` runs `test:ci` on every push to `main` (i.e. after merge). They aren't the same suite at two trigger points — `test:main-gate` (`playwright test --grep-invert @problematic`) has no `--project` flag, so it runs every tag except `@problematic` — including `@visual` — across all three browser engines. `test:ci` (`playwright test --grep "@regression|@e2e|@a11y" --project=chromium`) is deliberately narrower: one browser, three tags, no visual regression. The intent is that the expensive, exhaustive run happens once, pre-merge, when it can still block a bad PR; the post-merge run only needs to confirm `main` is still healthy, so it stays fast rather than repeating the full cross-browser/visual sweep on every push. Each workflow also deploys its report to its own Pages path (`changes-report/` vs `report/`) so the two never overwrite each other.
