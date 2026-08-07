@@ -2,7 +2,7 @@
 
 A field guide to [SauceDemo](https://www.saucedemo.com), the application this repo tests: what it does, the user profiles it ships for QA practice, and — the main point of this document — a scannable catalog of where its behavior diverges from what a real production e-commerce app would do, with the expected real-world behavior spelled out for each one.
 
-**Why this document exists:** SauceDemo has no published spec. Everything below was established by reading the app's actual behavior — manually and through this automation suite — not by reading documentation that doesn't exist. Where something looks like a bug but isn't (see [§5](#5-looks-like-a-bug-isnt-a-bug)), that distinction was reached deliberately. This doc, along with the full [defect log](TEST-CASES.md#defect-log) and [risk register](TEST-PLAN.md#3-risk-assessment) it's drawn from, is meant to show that reasoning, not just the conclusions.
+**Why this document exists:** SauceDemo has no published spec. Everything below was established by reading the app's actual behavior — manually and through this automation suite. Where something looks like a bug but isn't (see [§5](#5-looks-like-a-bug-isnt-a-bug)), that distinction was reached deliberately. This doc, along with the full [defect log](TEST-CASES.md#defect-log) and [risk register](TEST-PLAN.md#3-risk-assessment) it's drawn from, is meant to show that reasoning, not just the conclusions.
 
 ---
 

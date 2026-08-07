@@ -67,7 +67,7 @@ test.describe('inventory feature', () => {
 
         test(
             '[TC-008]: removing a product from the cart updates the cart count and displays the add button',
-            { tag: ['@smoke', '@regression'] },
+            { tag: '@regression' },
             async ({ inventoryPage }) => {
                 const firstProduct = await inventoryPage.getInventoryItemByName(
                     INVENTORY_PRODUCTS[0].name
@@ -91,6 +91,19 @@ test.describe('inventory feature', () => {
                 await inventoryPage.nav.goToShoppingCart();
 
                 await expect(page).toHaveURL(/cart\.html/);
+            }
+        );
+
+        test(
+            '[TC-018]: product images should be distinct per product',
+            { tag: '@regression' },
+            async ({ inventoryPage }) => {
+                const items = await inventoryPage.listAllInventoryItems();
+                const imageSrcs = await Promise.all(
+                    items.map((item) => item.getImageSrc())
+                );
+
+                expect(new Set(imageSrcs).size).toBe(INVENTORY_PRODUCTS.length);
             }
         );
     });

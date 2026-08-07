@@ -73,7 +73,7 @@
 **Priority:** 🔴 High<br>
 **Automated:** Yes<br>
 **Automation reference:** `tests/functional/auth/login.spec.ts` — Scenario: "successful login as standard_user"<br>
-**Tags:** `@smoke` `@regression` `@e2e`<br>
+**Tags:** `@smoke` `@regression`<br>
 
 **Preconditions:**
 
@@ -94,6 +94,7 @@
 Successful authentication redirects user to inventory page and establishes a valid session.
 
 **Actual result:**
+Matches expected — login succeeds and redirects to `/inventory.html`, with the product grid and header logo rendering correctly.
 
 **Test data:**
 
@@ -116,7 +117,7 @@ Primary happy-path entry point for standard user workflows.
 **Priority:** 🟡 Medium<br>
 **Automated:** Yes<br>
 **Automation reference:** `tests/functional/auth/login.spec.ts` — Scenario: "login latency check for performance_glitch_user"<br>
-**Tags:** `@regression` `@problematic`<br>
+**Tags:** `@performance` `@problematic`<br>
 
 **Preconditions:**
 
@@ -136,6 +137,7 @@ Primary happy-path entry point for standard user workflows.
 Authentication succeeds and redirects to inventory within framework SLA benchmark limits.
 
 **Actual result:**
+Matches expected — login for `performance_glitch_user` completed within the 10,000ms SLA benchmark.
 
 **Test data:**
 
@@ -158,7 +160,7 @@ Used to test dynamic waiting mechanisms and performance log thresholds. Run on a
 **Priority:** 🟡 Medium<br>
 **Automated:** Yes<br>
 **Automation reference:** `tests/e2e/checkout.e2e.spec.ts` — Scenario: "[TC-017]: Session token persists across a normal-speed multi-step workflow"<br>
-**Tags:** `@regression` `@security`<br>
+**Tags:** `@regression` `@security` `@e2e`<br>
 
 **Preconditions:**
 
@@ -174,7 +176,7 @@ Used to test dynamic waiting mechanisms and performance log thresholds. Run on a
 | 4    | Assert no unauthenticated redirect occurred at any point during the sequence                                                                       | User remains on the authenticated flow throughout                      |
 
 **Expected result:**
-During a normal-speed workflow — real page-to-page navigation with no added delay — the session cookie remains valid and unchanged across Inventory → Cart → Checkout step one → Checkout step two → Checkout complete, and the user is never dropped back to `/index.html`. This includes the post-purchase state reset that TC-025 established happens on the completion transition (cart contents are cleared): that reset must not overreach into clearing the session cookie. This asserts only that nothing in the app triggers a _false_ early logout during ordinary use; it does not assert anything about session duration beyond that. The `session-username` cookie's actual TTL (~10 minutes, confirmed via captured storage state, fixed from login rather than sliding with activity) is a real, reproducible characteristic — but not a documented product requirement, since SauceDemo has no published auth spec and the number is an unannounced third-party implementation detail that could change without notice. See the Session 2 addendum (2026-08-03) and TEST-PLAN.md §3.
+During a normal-speed workflow — real page-to-page navigation with no added delay — the session cookie remains valid and unchanged across Inventory → Cart → Checkout step one → Checkout step two → Checkout complete, and the user is never dropped back to `/index.html`. This includes the post-purchase state reset that TC-025 established happens on the completion transition (cart contents are cleared): that reset must not overreach into clearing the session cookie. This asserts only that nothing in the app triggers a _false_ early logout during ordinary use; it does not assert anything about session duration beyond that. The `session-username` cookie's actual TTL (~10 minutes, confirmed via captured storage state, fixed from login rather than sliding with activity) is a real, reproducible characteristic — but not a documented product requirement, since SauceDemo has no published auth spec and the number is an unannounced third-party implementation detail that could change without notice. See Session 2's Additional Note (2026-08-03) and TEST-PLAN.md §3.
 
 **Actual result:**
 Passed — session cookie captured before the funnel and after purchase completion (`/checkout-complete.html`) was byte-for-byte identical, including its `expires` value; no redirect to `/index.html` occurred at any transition.
@@ -201,8 +203,8 @@ Delay between steps is produced organically via real multi-page navigation rathe
 **Type:** Functional<br>
 **Priority:** 🟡 Medium<br>
 **Automated:** Yes<br>
-**Automation reference:** `tests/functional/inventory/products.spec.ts` — Scenario: "product sorting functionality" (sort by name A-Z/Z-A, price low-high/high-low)<br>
-**Tags:** `@regression` `@e2e`<br>
+**Automation reference:** `tests/functional/inventory/inventory-page.spec.ts` — Scenario: "product sorting functionality" (sort by name A-Z/Z-A, price low-high/high-low)<br>
+**Tags:** `@regression`<br>
 
 **Preconditions:**
 
@@ -221,6 +223,7 @@ Delay between steps is produced organically via real multi-page navigation rathe
 Selecting sorting dropdown options immediately changes the DOM order of inventory items matching the selected criterion.
 
 **Actual result:**
+Matches expected — all four sort options (Name A-Z/Z-A, Price low-high/high-low) reorder the DOM correctly.
 
 **Test data:**
 
@@ -241,8 +244,8 @@ DOM sequence should be asserted programmatically using item names and numerical 
 **Type:** Functional<br>
 **Priority:** 🔴 High<br>
 **Automated:** Yes<br>
-**Automation reference:** `tests/functional/inventory/products.spec.ts` — Scenario: "adding a product to the cart updates the cart count and displays the remove button"<br>
-**Tags:** `@smoke` `@regression` `@e2e`<br>
+**Automation reference:** `tests/functional/inventory/inventory-page.spec.ts` — Scenario: "adding a product to the cart updates the cart count and displays the remove button"<br>
+**Tags:** `@smoke` `@regression`<br>
 
 **Preconditions:**
 
@@ -260,6 +263,7 @@ DOM sequence should be asserted programmatically using item names and numerical 
 Adding an item updates the button state to "Remove" and increments the cart badge count by 1.
 
 **Actual result:**
+Matches expected — button toggles to "Remove" and the cart badge increments to 1.
 
 **Test data:**
 
@@ -280,8 +284,8 @@ Validates UI state transition before navigating to cart view.
 **Type:** Functional<br>
 **Priority:** 🟡 Medium<br>
 **Automated:** Yes<br>
-**Automation reference:** `tests/functional/inventory/products.spec.ts` — Scenario: "removing a product from the cart updates the cart count and displays the add button"<br>
-**Tags:** `@regression` `@e2e`<br>
+**Automation reference:** `tests/functional/inventory/inventory-page.spec.ts` — Scenario: "removing a product from the cart updates the cart count and displays the add button"<br>
+**Tags:** `@regression`<br>
 
 **Preconditions:**
 
@@ -299,6 +303,7 @@ Validates UI state transition before navigating to cart view.
 Removing an item directly from inventory resets the action button to "Add to cart" and decrements the cart badge count.
 
 **Actual result:**
+Matches expected — button reverts to "Add to cart" and the cart badge decrements.
 
 **Test data:**
 
@@ -319,8 +324,8 @@ Removing an item directly from inventory resets the action button to "Add to car
 **Type:** Functional<br>
 **Priority:** 🟡 Medium<br>
 **Automated:** Yes<br>
-**Automation reference:** `tests/functional/inventory/products.spec.ts` — Scenario: "[TC-018]: product images should be distinct per product" — currently `test.skip`'d, see BUG-005<br>
-**Tags:** `@regression`<br>
+**Automation reference:** `tests/functional/inventory/inventory-page.spec.ts` — two separate scenarios sharing the title "[TC-018]: product images should be distinct per product": one under `functional tests @regression` for `standard_user`, and one under `problem_user feature quirks @problematic` — currently `test.skip`'d, see BUG-005<br>
+**Tags:** `@regression` `@problematic`<br>
 
 **Preconditions:**
 
@@ -339,7 +344,7 @@ Removing an item directly from inventory resets the action button to "Add to car
 All product images on the inventory page resolve to their own valid, distinct image resource, for every user profile.
 
 **Actual result:**
-For `problem_user`, every product image resolves to the identical placeholder asset (`/assets/sl-404-*.jpg`) regardless of which product it belongs to.
+Matches expected for `standard_user` — each product resolves to its own distinct image. For `problem_user`, every product image resolves to the identical placeholder asset (`/assets/sl-404-*.jpg`) regardless of which product it belongs to.
 
 **Test data:**
 
@@ -348,9 +353,9 @@ For `problem_user`, every product image resolves to the identical placeholder as
 | Users | `standard_user`, `problem_user` |
 
 **Notes:**
-Originally scoped to treat `problem_user`'s broken image as an accepted, documented quirk rather than a defect; re-scoped to the `test.skip` + Defect log convention used for BUG-001–004, so it's tracked as an open item rather than silently accepted. See BUG-005 in the Defect log.
+Originally scoped to treat `problem_user`'s broken image as an accepted, documented quirk rather than a defect; re-scoped to the `test.skip` + Defect log convention used for BUG-001–004, so it's tracked as an open item rather than silently accepted. See BUG-005 in the Defect log. Previously automated only for `problem_user`; a `standard_user` scenario was added so the "every user profile" claim above is actually backed by its own test rather than relying on an assumption.
 
-**Status:** ⏭ Skipped (known bug)
+**Status:** ✅ Pass (`standard_user`) — ⏭ Skipped (`problem_user`, known bug, see Defect log)
 
 ---
 
@@ -360,8 +365,8 @@ Originally scoped to treat `problem_user`'s broken image as an accepted, documen
 **Type:** Functional<br>
 **Priority:** 🟡 Medium<br>
 **Automated:** Yes<br>
-**Automation reference:** `tests/functional/inventory/products.spec.ts` — Scenario: "[TC-030]: sort dropdown reorders products" — currently `test.skip`'d, see BUG-006<br>
-**Tags:** `@regression`<br>
+**Automation reference:** `tests/functional/inventory/inventory-page.spec.ts` — Scenario: "[TC-030]: sort dropdown reorders products" — currently `test.skip`'d, see BUG-006<br>
+**Tags:** `@problematic`<br>
 
 **Preconditions:**
 
@@ -400,8 +405,8 @@ Extends TC-006's standard_user coverage to `problem_user`, where the sort featur
 **Type:** Functional<br>
 **Priority:** 🟡 Medium<br>
 **Automated:** Yes<br>
-**Automation reference:** `tests/functional/inventory/products.spec.ts` — Scenario: "[TC-031]: Remove button on the inventory page removes the item from the cart" — currently `test.skip`'d, see BUG-007<br>
-**Tags:** `@regression`<br>
+**Automation reference:** `tests/functional/inventory/inventory-page.spec.ts` — Scenario: "[TC-031]: Remove button on the inventory page removes the item from the cart" — currently `test.skip`'d, see BUG-007<br>
+**Tags:** `@problematic`<br>
 
 **Preconditions:**
 
@@ -471,7 +476,7 @@ Matches expected — verified for `standard_user` across all 6 products (name cl
 | Invalid id | `999`           |
 
 **Notes:**
-Required building `InventoryItemDetailsPage` (composes the existing `InventoryItemComponent` around the page's single item container) and a `viewDetails()` click handler on `InventoryItemComponent`, plus wiring `inventoryItemDetailsPage` into the fixtures. See Session 3.
+Required building `InventoryDetailsPage` (composes the existing `InventoryItemComponent` around the page's single item container) and a `viewDetails()` click handler on `InventoryItemComponent`, plus wiring `inventoryDetailsPage` into the fixtures. See Session 3.
 
 **Status:** ✅ Pass
 
@@ -501,6 +506,9 @@ Required building `InventoryItemDetailsPage` (composes the existing `InventoryIt
 
 **Expected result:**
 Cart state is fully shared and bidirectionally consistent between the item detail page and the inventory list — the same underlying state, not independently tracked per page.
+
+**Actual result:**
+Matches expected — add/remove actions on the item detail page stay in sync with the inventory list in both directions.
 
 **Test data:**
 
@@ -568,7 +576,7 @@ This also produces an easy-to-misread secondary symptom: because you land on the
 
 **Preconditions:**
 
-- User is authenticated as `problem_user`. Detail pages are opened by direct URL (`inventoryItemDetailsPage.open(id)`) to bypass BUG-010's navigation mismatch.
+- User is authenticated as `problem_user`. Detail pages are opened by direct URL (`inventoryDetailsPage.open(id)`) to bypass BUG-010's navigation mismatch.
 
 **Test steps:**
 
@@ -582,7 +590,7 @@ This also produces an easy-to-misread secondary symptom: because you land on the
 "Add to cart" works identically for every product on the item detail page, for every user profile.
 
 **Actual result:**
-For `problem_user`, "Add to cart" on the item detail page is a no-op for exactly half of the catalog — reproducible for `Sauce Labs Bolt T-Shirt`, `Sauce Labs Fleece Jacket`, and `Test.allTheThings() T-Shirt (Red)` — while it works correctly for `Sauce Labs Backpack`, `Sauce Labs Bike Light`, and `Sauce Labs Onesie`. Critically, this is **not** specific to the item detail page: the exact same three products also fail to add to cart from the inventory list page. This corrects an earlier, narrower finding from this same investigation that mischaracterized it as a detail-page-only defect (see the Session 3 addendum in the exploratory log).
+For `problem_user`, "Add to cart" on the item detail page is a no-op for exactly half of the catalog — reproducible for `Sauce Labs Bolt T-Shirt`, `Sauce Labs Fleece Jacket`, and `Test.allTheThings() T-Shirt (Red)` — while it works correctly for `Sauce Labs Backpack`, `Sauce Labs Bike Light`, and `Sauce Labs Onesie`. Critically, this is **not** specific to the item detail page: the exact same three products also fail to add to cart from the inventory list page. This corrects an earlier, narrower finding from this same investigation that mischaracterized it as a detail-page-only defect (see Session 3's Additional Note in the exploratory log).
 
 **Test data:**
 
@@ -591,7 +599,7 @@ For `problem_user`, "Add to cart" on the item detail page is a no-op for exactly
 | Users | `problem_user` |
 
 **Notes:**
-Likely shares a root cause with BUG-007 ("Remove" no-op on the inventory list page for `Sauce Labs Backpack`) rather than being fully independent — both look like symptoms of the same broken per-product click-handler binding that also produces BUG-010's navigation mismatch. Kept as a separate defect entry because the observable symptom (which action fails, and for which products) differs, and because BUG-007 has not been re-verified against the full catalog to confirm whether it follows the same even/odd-id split. See BUG-011 and the Session 3 addendum.
+Likely shares a root cause with BUG-007 ("Remove" no-op on the inventory list page for `Sauce Labs Backpack`) rather than being fully independent — both look like symptoms of the same broken per-product click-handler binding that also produces BUG-010's navigation mismatch. Kept as a separate defect entry because the observable symptom (which action fails, and for which products) differs, and because BUG-007 has not been re-verified against the full catalog to confirm whether it follows the same even/odd-id split. See BUG-011 and Session 3's Additional Note.
 
 **Status:** ⏭ Skipped (known bug)
 
@@ -606,7 +614,7 @@ Likely shares a root cause with BUG-007 ("Remove" no-op on the inventory list pa
 **Priority:** 🔴 High<br>
 **Automated:** Yes<br>
 **Automation reference:** `tests/functional/cart/shopping-cart.spec.ts` — Scenario: "add products from the inventory page and navigate to the cart verifying the exact items were added"<br>
-**Tags:** `@smoke` `@regression` `@e2e`<br>
+**Tags:** `@smoke` `@regression`<br>
 
 **Preconditions:**
 
@@ -625,12 +633,13 @@ Likely shares a root cause with BUG-007 ("Remove" no-op on the inventory list pa
 Selected inventory item data matches cart view data with 100% data integrity.
 
 **Actual result:**
+Matches expected — cart item title, description, and price are identical to the inventory source data.
 
 **Test data:**
 
-| Field        | Value                                      |
-| ------------ | ------------------------------------------ |
-| Target Items | Sauce Labs Backpack, Sauce Labs Bike Light |
+| Field        | Value                                         |
+| ------------ | --------------------------------------------- |
+| Target Items | Sauce Labs Backpack, Sauce Labs Fleece Jacket |
 
 **Notes:**
 Guarantees data model consistency across page boundaries.
@@ -646,7 +655,7 @@ Guarantees data model consistency across page boundaries.
 **Priority:** 🟡 Medium<br>
 **Automated:** Yes<br>
 **Automation reference:** `tests/functional/cart/shopping-cart.spec.ts` — Scenario: "removing an item from within the cart updates the UI list and badge count without needing a page refresh"<br>
-**Tags:** `@regression` `@e2e`<br>
+**Tags:** `@regression`<br>
 
 **Preconditions:**
 
@@ -664,6 +673,7 @@ Guarantees data model consistency across page boundaries.
 Removing an item inside `/cart.html` immediately removes the DOM node and updates badge count without requiring full page reload.
 
 **Actual result:**
+Matches expected — item row is removed immediately and the badge decrements from 2 to 1, with no page reload.
 
 **Test data:**
 
@@ -685,7 +695,7 @@ Ensures reactive client-side rendering functions correctly.
 **Priority:** 🟡 Medium<br>
 **Automated:** Yes<br>
 **Automation reference:** `tests/functional/cart/shopping-cart.spec.ts` — Scenario: "the Continue Shopping button successfully returns the user to the inventory page with their current cart state preserved"<br>
-**Tags:** `@regression` `@e2e`<br>
+**Tags:** `@regression`<br>
 
 **Preconditions:**
 
@@ -703,6 +713,7 @@ Ensures reactive client-side rendering functions correctly.
 Returning to inventory via "Continue Shopping" preserves active cart state completely.
 
 **Actual result:**
+Matches expected — cart badge count and "Remove" button state are preserved after returning via "Continue Shopping".
 
 **Test data:**
 
@@ -745,6 +756,8 @@ Using the browser's native back button to return to the cart preserves the exact
 **Actual result:**
 Passes on `chromium` (the project's regression/CI target). Flaky on `firefox`/`webkit`: `listAllCartItems()` is occasionally read before the cart page finishes rendering post-`domcontentloaded`, returning an empty list — the same pre-existing race affects TC-011 on those browsers and is not specific to this case.
 
+**Edit:** The above flakiness was resolved once `CartPage.open()` was updated to wait on the `cart-contents-container` `pageContainer` locator becoming visible, rather than relying on `domcontentloaded` alone (see `src/pages/cart.page.ts`). Since this suite's `beforeEach` already calls `cartPage.open()`, the fix covers this test's initial cart read as well as the post-`goBack()` read — the test now passes reliably on `chromium`, `firefox`, and `webkit`.
+
 **Test data:**
 
 | Field         | Value               |
@@ -754,7 +767,7 @@ Passes on `chromium` (the project's regression/CI target). Flaky on `firefox`/`w
 **Notes:**
 Complements TC-011, which covers the "Continue Shopping" button path; this covers the native back-button/history path called out separately in TEST-PLAN §3. Uses the seeded `CART` storage state (3 items) rather than a single retained item.
 
-**Status:** ✅ Pass (chromium)
+**Status:** ✅ Pass
 
 ---
 
@@ -767,7 +780,7 @@ Complements TC-011, which covers the "Continue Shopping" button path; this cover
 **Priority:** 🔴 High<br>
 **Automated:** Yes<br>
 **Automation reference:** `tests/e2e/checkout.e2e.spec.ts` — Scenario: "complete full checkout purchase flow"<br>
-**Tags:** `@smoke` `@regression` `@e2e`<br>
+**Tags:** `@e2e`<br>
 
 **Preconditions:**
 
@@ -788,6 +801,7 @@ Complements TC-011, which covers the "Continue Shopping" button path; this cover
 User successfully completes multi-step checkout workflow and reaches order confirmation page.
 
 **Actual result:**
+Matches expected — checkout completes end-to-end, reaching `/checkout-complete.html` with the "Thank you for your order!" confirmation.
 
 **Test data:**
 
@@ -798,7 +812,7 @@ User successfully completes multi-step checkout workflow and reaches order confi
 | Postal Code | 90210 |
 
 **Notes:**
-Primary critical path revenue-generating journey.
+Primary critical path revenue-generating journey. Test data above (Jane/Doe/90210) is illustrative example data; actual automated runs generate these values via `faker` at runtime rather than using literal fixed strings.
 
 **Status:** ✅ Pass
 
@@ -811,7 +825,7 @@ Primary critical path revenue-generating journey.
 **Priority:** 🔴 High<br>
 **Automated:** Yes<br>
 **Automation reference:** `tests/functional/checkout/order-summary.spec.ts` — Scenario: "verify cart items total calculation"<br>
-**Tags:** `@regression` `@e2e`<br>
+**Tags:** `@smoke` `@regression`<br>
 
 **Preconditions:**
 
@@ -830,6 +844,7 @@ Primary critical path revenue-generating journey.
 Application's displayed Total equals Item Total plus Tax calculated across selected catalog items.
 
 **Actual result:**
+Matches expected — displayed Item total plus Tax equals the displayed Total, exactly.
 
 **Test data:**
 
@@ -855,7 +870,7 @@ _Multi-page, cross-module journeys that exercise the funnel end to end. See also
 **Priority:** 🔴 High<br>
 **Automated:** Yes<br>
 **Automation reference:** `tests/e2e/checkout.e2e.spec.ts` — Scenario: "[TC-022]: complete full checkout purchase flow" (adds 3 items, asserts subtotal, tax, and total through to order confirmation)<br>
-**Tags:** `@e2e` `@regression`<br>
+**Tags:** `@e2e`<br>
 
 **Preconditions:**
 
@@ -875,12 +890,13 @@ _Multi-page, cross-module journeys that exercise the funnel end to end. See also
 A multi-item cart carries correct, consistent totals across every step of the funnel through to order confirmation.
 
 **Actual result:**
+Matches expected — totals stay consistent for all 3 items across the full funnel through to confirmation.
 
 **Test data:**
 
-| Field | Value                                                               |
-| ----- | ------------------------------------------------------------------- |
-| Items | Sauce Labs Backpack, Sauce Labs Bike Light, Sauce Labs Bolt T-Shirt |
+| Field | Value                                                            |
+| ----- | ---------------------------------------------------------------- |
+| Items | Sauce Labs Backpack, Sauce Labs Fleece Jacket, Sauce Labs Onesie |
 
 **Notes:**
 Complements TC-012 (single-item happy path) and TC-014 (isolated step-two math check) by validating totals stay correct across the _entire_ funnel, not just one page, with more than one item.
@@ -904,24 +920,27 @@ Complements TC-012 (single-item happy path) and TC-014 (isolated step-two math c
 
 **Test steps:**
 
-| Step | Action                                                         | Expected result                                      |
-| ---- | -------------------------------------------------------------- | ---------------------------------------------------- |
-| 1    | From `/cart.html`, click "Checkout" then "Cancel" on step one  | User is returned to `/cart.html`                     |
-| 2    | Verify cart contents and badge count                           | Both items remain in the cart, badge still shows `2` |
-| 3    | Click "Checkout" again, fill required fields, click "Continue" | Navigates to `/checkout-step-two.html`               |
-| 4    | Click "Cancel" on the overview step                            | User is returned to `/inventory.html`                |
-| 5    | Verify cart badge from the inventory page                      | Badge still shows `2`, no items were lost            |
+| Step | Action                                                                                   | Expected result                                                 |
+| ---- | ---------------------------------------------------------------------------------------- | --------------------------------------------------------------- |
+| 1    | Scenario A — From `/cart.html`, click "Checkout" then "Cancel" on step one               | User is returned to `/cart.html`                                |
+| 2    | Verify cart contents and badge count                                                     | All 3 items remain in the cart, badge still shows `3`           |
+| 3    | Click "Checkout" again, fill required fields, click "Continue", then click "Finish"      | Checkout completes normally, reaching `/checkout-complete.html` |
+| 4    | Scenario B — From `/cart.html`, click "Checkout", fill required fields, click "Continue" | Navigates to `/checkout-step-two.html`                          |
+| 5    | Click "Cancel" on the overview step                                                      | User is returned to `/inventory.html`                           |
+| 6    | Navigate to `/cart.html` and verify cart contents and badge count                        | All 3 items remain in the cart, badge still shows `3`           |
+| 7    | Click "Checkout" again, fill required fields, click "Continue", then click "Finish"      | Checkout completes normally, reaching `/checkout-complete.html` |
 
 **Expected result:**
-Cancelling checkout at either step returns the user to the expected prior page without losing any cart contents.
+Cancelling checkout at either step (one or two) returns the user to the expected prior page without losing any cart contents, and the funnel can be resumed afterward to a successful purchase.
 
 **Actual result:**
+Matches expected for both automated scenarios — cancelling on step one or step two returns to the correct page with all 3 items intact, and checkout can be resumed to completion. See Notes for the third, skipped scenario.
 
 **Test data:**
 
-| Field | Value                                      |
-| ----- | ------------------------------------------ |
-| Items | Sauce Labs Backpack, Sauce Labs Bike Light |
+| Field | Value                                                            |
+| ----- | ---------------------------------------------------------------- |
+| Items | Sauce Labs Backpack, Sauce Labs Fleece Jacket, Sauce Labs Onesie |
 
 **Notes:**
 A third variant — "[TC-023]: Abandon checkout on Step Two, check filled form data & resume" — is currently `test.skip`'d due to a discovered bug (filled shipping form data is not preserved after aborting checkout); see BUG-002 in the Defect log.
@@ -937,7 +956,7 @@ A third variant — "[TC-023]: Abandon checkout on Step Two, check filled form d
 **Priority:** 🟡 Medium<br>
 **Automated:** Yes<br>
 **Automation reference:** `tests/e2e/checkout.e2e.spec.ts` — Scenario: "[TC-024]: Remove item mid-funnel, resume"<br>
-**Tags:** `@e2e` `@regression`<br>
+**Tags:** `@e2e`<br>
 
 **Preconditions:**
 
@@ -956,12 +975,13 @@ A third variant — "[TC-023]: Abandon checkout on Step Two, check filled form d
 Totals recalculated after a mid-funnel cart edit are correct and never reflect stale/removed items.
 
 **Actual result:**
+Matches expected — after removing one item mid-funnel, the overview totals reflect only the single remaining item.
 
 **Test data:**
 
-| Field | Value                                      |
-| ----- | ------------------------------------------ |
-| Items | Sauce Labs Backpack, Sauce Labs Bike Light |
+| Field | Value                                    |
+| ----- | ---------------------------------------- |
+| Items | Sauce Labs Bike Light, Sauce Labs Onesie |
 
 **Notes:**
 Guards against a class of bug where checkout totals are computed once and cached rather than derived live from current cart state.
@@ -996,6 +1016,7 @@ Guards against a class of bug where checkout totals are computed once and cached
 Completing an order fully resets cart state; no items or stale badge counts carry over past the confirmation page.
 
 **Actual result:**
+Matches expected — cart badge and `/cart.html` are empty post-purchase, and a previously purchased item can be re-added as a fresh entry.
 
 **Test data:**
 
@@ -1034,6 +1055,7 @@ TC-012 stops verifying at the confirmation message; this covers the remainder of
 `performance_glitch_user` can complete the entire purchase funnel — not just login — within the SLA threshold, with no step timing out.
 
 **Actual result:**
+Matches expected — `performance_glitch_user` completes the full purchase funnel within the 15,000ms SLA threshold.
 
 **Test data:**
 
@@ -1058,7 +1080,7 @@ TEST-PLAN §3's Critical mitigation calls for automating "the full happy-path E2
 **Priority:** 🔴 High<br>
 **Automated:** Yes<br>
 **Automation reference:** `tests/functional/navigation/sidebar-menu.spec.ts` — Scenario: "clean application logout and session state reset"<br>
-**Tags:** `@smoke` `@regression`<br>
+**Tags:** `@security` `@regression`<br>
 
 **Preconditions:**
 
@@ -1076,6 +1098,7 @@ TEST-PLAN §3's Critical mitigation calls for automating "the full happy-path E2
 Logging out via sidebar menu clears application session state and prevents unauthenticated back-navigation.
 
 **Actual result:**
+Matches expected — logout clears the session and back-navigation to `/inventory.html` is redirected to `/index.html`.
 
 **Test data:**
 
@@ -1137,7 +1160,7 @@ Written in response to a question about whether "all user data" (cart items, dra
 **Priority:** 🟡 Medium<br>
 **Automated:** Yes<br>
 **Automation reference:** `tests/functional/navigation/sidebar-menu.spec.ts` — Scenario: "All Items link returns the user to the inventory page"<br>
-**Tags:** `@smoke` `@regression`<br>
+**Tags:** `@regression`<br>
 
 **Preconditions:**
 
@@ -1155,6 +1178,7 @@ Written in response to a question about whether "all user data" (cart items, dra
 The "All Items" sidebar link returns the user to the inventory page and renders the product list from any other page in the app.
 
 **Actual result:**
+Matches expected — "All Items" navigates to `/inventory.html` and the full product grid renders.
 
 **Test data:**
 
@@ -1232,6 +1256,7 @@ Found while adding navigation menu coverage. See BUG-008 in the Defect log.
 Core page structural layouts match Ubuntu CI visual baseline snapshots within pixel tolerance limits.
 
 **Actual result:**
+Matches expected — both snapshots render within pixel tolerance of the Ubuntu CI baselines.
 
 **Test data:**
 
@@ -1299,7 +1324,7 @@ Originally scoped as a single scan-all-pages case; implemented instead as four s
 **Priority:** 🔴 High<br>
 **Automated:** Yes<br>
 **Automation reference:** `tests/functional/auth/login.spec.ts` — Scenario: "error message on invalid credentials - invalid credentials" (data-driven)<br>
-**Tags:** `@smoke` `@regression`<br>
+**Tags:** `@regression`<br>
 
 **Preconditions:**
 
@@ -1319,6 +1344,7 @@ Originally scoped as a single scan-all-pages case; implemented instead as four s
 System rejects invalid credentials and displays explicit error message banner.
 
 **Actual result:**
+Matches expected — invalid credentials are rejected with the exact error banner text.
 
 **Test data:**
 
@@ -1356,6 +1382,7 @@ System rejects invalid credentials and displays explicit error message banner.
 Unauthenticated direct navigation to protected route is blocked and redirected to login page with explicit error.
 
 **Actual result:**
+Matches expected — unauthenticated navigation to `/inventory.html` redirects to `/index.html` with the exact error banner text.
 
 **Status:** ✅ Pass
 
@@ -1429,6 +1456,7 @@ Found while investigating a manually observed cross-tab behavior where logging i
 Locked out user is barred entry and receives specific account status error message.
 
 **Actual result:**
+Matches expected — `locked_out_user` is barred entry with the exact "locked out" error banner text.
 
 **Test data:**
 
@@ -1466,6 +1494,7 @@ Locked out user is barred entry and receives specific account status error messa
 Submitting checkout step one with any required field left blank blocks form submission and displays the field-specific validation error banner. When multiple fields are blank simultaneously, the first missing field in form order (First Name → Last Name → Postal Code) takes precedence, matching the application's validation order.
 
 **Actual result:**
+Matches expected for 4 of 5 data rows — each blank-field combination blocks submission with the correct error banner. See Notes for the fifth, skipped row.
 
 **Test data:**
 
@@ -1491,7 +1520,7 @@ Intentionally documented as a single test case data-driven over all four combina
 **Priority:** 🔴 High<br>
 **Automated:** Yes<br>
 **Automation reference:** `tests/e2e/checkout.e2e.spec.ts` — Scenario: "Checkout should be blocked when the cart is empty" — currently `test.skip`'d, see BUG-003<br>
-**Tags:** `@regression`<br>
+**Tags:** `@e2e`<br>
 
 **Preconditions:**
 
@@ -1529,7 +1558,7 @@ Found via exploratory testing, not originally documented in this suite. See BUG-
 **Priority:** 🟠 High<br>
 **Automated:** Yes<br>
 **Automation reference:** `tests/e2e/multiple-profiles-checkout.e2e.spec.ts` — Scenario: "problem user @e2e" — "[TC-028]: Complete full checkout purchase flow" — currently `test.skip`'d, see BUG-004<br>
-**Tags:** `@e2e`<br>
+**Tags:** `@e2e` `@problematic`<br>
 
 **Preconditions:**
 
@@ -1712,17 +1741,17 @@ A specific claim was also investigated directly: "the item view doesn't show the
 
 **Bugs found:**
 
-| Bug     | Summary                                                                                                                                                | Linked TC |
-| ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ | --------- |
-| BUG-010 | Item detail page navigation resolves to the wrong product — reproducible for all 6 products, one product's detail page is entirely unreachable         | TC-037    |
-| BUG-011 | "Add to cart" is a no-op for half of the catalog, for `problem_user`, on both the inventory list and item detail pages (corrected, see addendum above) | TC-038    |
+| Bug     | Summary                                                                                                                                                       | Linked TC |
+| ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- |
+| BUG-010 | Item detail page navigation resolves to the wrong product — reproducible for all 6 products, one product's detail page is entirely unreachable                | TC-037    |
+| BUG-011 | "Add to cart" is a no-op for half of the catalog, for `problem_user`, on both the inventory list and item detail pages (corrected, see Additional Note above) | TC-038    |
 
 **Test cases added as a result of this session:**
 
 - TC-035 — Item detail page renders accurate product data and handles navigation (`standard_user` baseline)
 - TC-036 — Cart actions on the item detail page stay in sync with the inventory list (`standard_user` baseline)
 - TC-037 — `problem_user` item detail page navigation resolves to the wrong product
-- TC-038 — `problem_user` "Add to cart" works for every product on the item detail page (rescoped per the addendum above)
+- TC-038 — `problem_user` "Add to cart" works for every product on the item detail page (rescoped per the Additional Note above)
 
 **Areas needing follow-up:**
 

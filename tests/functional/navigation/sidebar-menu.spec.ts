@@ -10,7 +10,7 @@ test.describe('navigation feature', () => {
 
         test(
             '[TC-015]: clean application logout and session state reset',
-            { tag: ['@smoke', '@regression'] },
+            { tag: ['@security', '@regression'] },
             async ({ page, inventoryPage }) => {
                 await inventoryPage.nav.openMenu();
                 await expect(inventoryPage.nav.logoutLink).toBeVisible();
