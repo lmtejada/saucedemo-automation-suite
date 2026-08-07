@@ -148,7 +148,7 @@ Given that, TC-017 intentionally does not assert against the exact ~10-minute va
 | **OS**               | Ubuntu Linux (GitHub Actions CI), macOS / Windows (Local development)                                                                                           |
 | **Test data source** | **Static Files:** Strict predefined SauceLabs credentials & product inventories.<br>**Faker.js:** Dynamic runtime generation for checkout form validation data. |
 | **Auth credentials** | Decoupled from logic using a local `.env` configuration file; mapped to standard environment variables within CI pipeline steps.                                |
-| **Dependencies**     | Node.js runtime, Playwright Test Runner engine, framework-level npm packages (`@axe-core/playwright`, `dotenv`).                                                |
+| **Dependencies**     | Node.js runtime, Playwright Test Runner engine, framework-level npm packages (`@axe-core/playwright`, `@faker-js/faker`, `dotenv`).                             |
 
 ---
 
@@ -257,7 +257,7 @@ Given that, TC-017 intentionally does not assert against the exact ~10-minute va
 - [x] Test plan strategy and scope definitions are complete
 - [x] Application target URL (`https://www.saucedemo.com/`) is stable and publicly accessible
 - [x] Base Page Object Model (POM) architecture and Playwright dependencies are initialized in the repository
-- [ ] Static user credentials and dynamic `Faker.js` utility scripts are configured and working
+- [x] Static user credentials and dynamic `Faker.js` utility scripts are configured and working
 
 ### Exit criteria
 
