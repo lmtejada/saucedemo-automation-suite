@@ -13,7 +13,8 @@ A field guide to [SauceDemo](https://www.saucedemo.com), the application this re
 - [3. Application map](#3-application-map)
 - [4. Known defects](#4-known-defects)
 - [5. Looks like a bug, isn't a bug](#5-looks-like-a-bug-isnt-a-bug)
-- [6. Where to go deeper](#6-where-to-go-deeper)
+- [6. Future work](#6-future-work)
+- [7. Where to go deeper](#7-where-to-go-deeper)
 
 ---
 
@@ -106,7 +107,19 @@ Measured directly from captured storage state: a fixed, non-sliding TTL (~599.7s
 
 ---
 
-## 6. Where to go deeper
+## 6. Future work
+
+Directions the suite could grow into next, beyond its current scope.
+
+- **Expand security testing.** Currently route-bypass (TC-003) and the session guard (TC-034, `test.skip`'d against BUG-009). Could add: cookie-flag checks (`HttpOnly`/`Secure`/`SameSite` on `session-username`) and basic XSS/input-sanitization probes on the checkout form.
+- **Add screen reader and full keyboard-navigation testing.** `@axe-core/playwright` covers static DOM/ARIA issues; real assistive-tech behavior and keyboard/focus coverage beyond the one existing control (the inventory sort dropdown) would need either logged manual screen-reader passes (VoiceOver/NVDA) as exploratory sessions, or scripted keyboard-only walkthroughs (Tab order, Enter/Space activation).
+- **Add mobile/responsive coverage.** Every Playwright project currently runs a fixed 1920×1080 desktop viewport. Could add a `devices['iPhone 13']`-style project alongside the desktop ones, plus a handful of layout/interaction smoke tests at that viewport.
+- **Add offline/network-interrupt scenarios.** Could use `page.context().setOffline(true)` and route interception to simulate a dropped connection mid-checkout or a failed asset load, then assert graceful degradation.
+- **Add test sharding.** The suite currently runs as one block per browser project. Could split via Playwright's `--shard` flag across parallel CI jobs, starting with the cross-browser main-gate run, to cut wall-clock time as the suite grows.
+
+---
+
+## 7. Where to go deeper
 
 | Doc                                    | What's in it                                                                                           |
 | -------------------------------------- | ------------------------------------------------------------------------------------------------------ |
