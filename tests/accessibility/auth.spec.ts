@@ -1,31 +1,23 @@
 import { test, expect } from '@fixtures/app';
 
 import { Messages } from '@enums/app';
-import { formatAxeViolations } from '@utils/accessibility';
+import { LoginPage } from '@pages/login.page';
+import { A11yScenario, formatAxeViolations } from '@utils/accessibility';
 
-test.describe('auth Accessibility Audits', { tag: '@a11y' }, () => {
-    test.describe('login default state', () => {
-        test.beforeEach(async ({ resetStorageState, loginPage }) => {
+const AUTH_A11Y_SCENARIOS: A11yScenario<{
+    loginPage: LoginPage;
+    resetStorageState: () => Promise<void>;
+}>[] = [
+    {
+        title: '[Accessibility]: Login page meets WCAG 2.1 AA standards',
+        setup: async ({ loginPage, resetStorageState }): Promise<void> => {
             await loginPage.open();
             await resetStorageState();
-        });
-
-        test('[Accessibility]: Login page meets WCAG 2.1 AA standards', async ({
-            makeAxeBuilder,
-        }) => {
-            // Run the scan against current page DOM state
-            const scanResults = await makeAxeBuilder().analyze();
-            const violations = formatAxeViolations(scanResults.violations);
-
-            expect(
-                violations,
-                `Found ${violations.length} accessibility violations`
-            ).toEqual([]);
-        });
-    });
-
-    test.describe('login invalid credentials error state', () => {
-        test.beforeEach(async ({ resetStorageState, loginPage }) => {
+        },
+    },
+    {
+        title: '[Accessibility]: Check Login page with invalid credentials error state',
+        setup: async ({ loginPage, resetStorageState }): Promise<void> => {
             await loginPage.open();
             await resetStorageState();
 
@@ -37,25 +29,35 @@ test.describe('auth Accessibility Audits', { tag: '@a11y' }, () => {
             await expect(loginPage.errorMessage).toHaveText(
                 Messages.LOGIN_ERROR
             );
-        });
+        },
+        skipReason:
+            'Bug found: the error banner\'s close button (data-test="error-button") has no discernible text - same shared component/defect as A11Y-001 on checkout step one (docs/TEST-CASES.md)',
+    },
+];
 
-        test('[Accessibility]: Check Login page with invalid credentials error state', async ({
-            makeAxeBuilder,
-        }) => {
-            // eslint-disable-next-line playwright/no-skipped-test
-            test.skip(
-                true,
-                'Bug found: the error banner\'s close button (data-test="error-button") has no discernible text - same shared component/defect as A11Y-001 on checkout step one (docs/TEST-CASES.md)'
-            );
+test.describe('auth Accessibility Audits', { tag: '@a11y' }, () => {
+    for (const scenario of AUTH_A11Y_SCENARIOS) {
+        test(
+            scenario.title,
+            async ({ loginPage, resetStorageState, makeAxeBuilder }) => {
+                // eslint-disable-next-line playwright/no-skipped-test
+                test.skip(
+                    Boolean(scenario.skipReason),
+                    scenario.skipReason ?? ''
+                );
 
-            // Run the scan with the error banner present in the DOM
-            const scanResults = await makeAxeBuilder().analyze();
-            const violations = formatAxeViolations(scanResults.violations);
+                await scenario.setup({ loginPage, resetStorageState });
 
-            expect(
-                violations,
-                `Found ${violations.length} accessibility violations`
-            ).toEqual([]);
-        });
-    });
+                const scanResults = await makeAxeBuilder()
+                    .disableRules(scenario.disableRules ?? [])
+                    .analyze();
+                const violations = formatAxeViolations(scanResults.violations);
+
+                expect(
+                    violations,
+                    `Found ${violations.length} accessibility violations`
+                ).toEqual([]);
+            }
+        );
+    }
 });

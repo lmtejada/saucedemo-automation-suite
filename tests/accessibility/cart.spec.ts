@@ -1,50 +1,59 @@
+import { Page } from '@playwright/test';
+
 import { test, expect } from '@fixtures/app';
 
 import { StorageStatePaths } from '@enums/app';
-import { formatAxeViolations } from '@utils/accessibility';
+import { CartPage } from '@pages/cart.page';
+import { A11yScenario, formatAxeViolations } from '@utils/accessibility';
+
+const CART_A11Y_SCENARIOS: A11yScenario<{
+    page: Page;
+    cartPage: CartPage;
+    resetCart: () => Promise<void>;
+}>[] = [
+    {
+        title: '[Accessibility]: Cart page with items meets WCAG 2.1 AA standards',
+        setup: async ({ cartPage }): Promise<void> => {
+            await cartPage.open();
+        },
+    },
+    {
+        title: '[Accessibility]: Check Cart page empty state',
+        setup: async ({ page, cartPage, resetCart }): Promise<void> => {
+            await cartPage.open();
+            await resetCart();
+            await page.reload();
+            await cartPage.pageContainer.waitFor({ state: 'visible' });
+        },
+    },
+];
 
 test.describe('cart Accessibility Audits', { tag: '@a11y' }, () => {
     // This suite exercises a pre-filled cart, so it opts into the seeded cart state.
     test.use({ storageState: StorageStatePaths.CART });
 
-    test.describe('cart with items', () => {
-        test.beforeEach(async ({ cartPage }) => {
-            await cartPage.open();
-        });
+    for (const scenario of CART_A11Y_SCENARIOS) {
+        test(
+            scenario.title,
+            async ({ page, cartPage, resetCart, makeAxeBuilder }) => {
+                // eslint-disable-next-line playwright/no-skipped-test
+                test.skip(
+                    Boolean(scenario.skipReason),
+                    scenario.skipReason ?? ''
+                );
 
-        test('[Accessibility]: Cart page with items meets WCAG 2.1 AA standards', async ({
-            makeAxeBuilder,
-        }) => {
-            // Run the scan against current page DOM state
-            const scanResults = await makeAxeBuilder().analyze();
-            const violations = formatAxeViolations(scanResults.violations);
+                await scenario.setup({ page, cartPage, resetCart });
 
-            expect(
-                violations,
-                `Found ${violations.length} accessibility violations`
-            ).toEqual([]);
-        });
-    });
+                const scanResults = await makeAxeBuilder()
+                    .disableRules(scenario.disableRules ?? [])
+                    .analyze();
+                const violations = formatAxeViolations(scanResults.violations);
 
-    test.describe('cart empty state', () => {
-        test.beforeEach(async ({ page, cartPage, resetCart }) => {
-            await cartPage.open();
-            await resetCart();
-            await page.reload();
-            await cartPage.pageContainer.waitFor({ state: 'visible' });
-        });
-
-        test('[Accessibility]: Check Cart page empty state', async ({
-            makeAxeBuilder,
-        }) => {
-            // Run the scan against current page DOM state
-            const scanResults = await makeAxeBuilder().analyze();
-            const violations = formatAxeViolations(scanResults.violations);
-
-            expect(
-                violations,
-                `Found ${violations.length} accessibility violations`
-            ).toEqual([]);
-        });
-    });
+                expect(
+                    violations,
+                    `Found ${violations.length} accessibility violations`
+                ).toEqual([]);
+            }
+        );
+    }
 });

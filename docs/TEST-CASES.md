@@ -1271,21 +1271,22 @@ Generated and executed in Ubuntu CI runner to prevent OS font-rendering anti-ali
 | 4    | Open `/checkout-complete.html` and run a scan                                                                                              | Zero WCAG 2.1 AA violations                     |
 | 5    | Open `/cart.html` with a seeded cart and run a scan; reset the cart to empty and scan again                                                | Zero WCAG 2.1 AA violations in both states      |
 | 6    | Open `/inventory.html` (default state) and run a scan; add an item to cart and scan again; select a sort option and scan again             | Zero WCAG 2.1 AA violations in all three states |
+| 7    | Open `/inventory-item.html` for a valid product and run a scan; open it with an invalid id (ITEM NOT FOUND state) and scan again           | Zero WCAG 2.1 AA violations in both states      |
 
 **Expected result:**
 All core application pages and their key interaction states pass automated Axe-core WCAG 2.1 AA scanning with no violations.
 
 **Actual result:**
-7 of 11 scanned states pass clean. 4 states fail on two distinct, unlabeled-control defects — logged as A11Y-001 and A11Y-002 in the [Accessibility summary](#accessibility-summary)'s dedicated accessibility defect log, not the general Defect log below — and are `test.skip`'d with the bug reference rather than silently accepted. See that section for the full breakdown.
+9 of 13 scanned states pass clean. 4 states fail on two distinct, unlabeled-control defects — logged as A11Y-001 and A11Y-002 in the [Accessibility summary](#accessibility-summary)'s dedicated accessibility defect log, not the general Defect log below — and are `test.skip`'d with the bug reference rather than silently accepted. See that section for the full breakdown. Item detail page coverage is `standard_user` only — `problem_user` is unassessed.
 
 **Test data:**
 
 N/A
 
 **Notes:**
-Originally scoped as a single scan-all-pages case; implemented instead as four spec files, one per flow, each covering the page's default state plus its meaningful interaction states (error banner shown, cart populated/empty, item added, sort option selected) rather than one static snapshot per page. Violations found during implementation are logged in the [Accessibility summary](#accessibility-summary)'s accessibility defect log, kept separate from the general Defect log, not silently accepted as a baseline.
+Originally scoped as a single scan-all-pages case; implemented instead as four spec files, one per flow, each covering the page's default state plus its meaningful interaction states (error banner shown, cart populated/empty, item added, sort option selected, item detail default/not-found) rather than one static snapshot per page. Violations found during implementation are logged in the [Accessibility summary](#accessibility-summary)'s accessibility defect log, kept separate from the general Defect log, not silently accepted as a baseline.
 
-**Status:** ✅ Pass (7 of 11 scenarios — 4 skipped, known bugs A11Y-001/A11Y-002, see Accessibility summary)
+**Status:** ✅ Pass (9 of 13 scenarios — 4 skipped, known bugs A11Y-001/A11Y-002, see Accessibility summary)
 
 ---
 
@@ -1598,12 +1599,12 @@ Page objects wait on a real `data-test` container element after navigation, not 
 
 ### Coverage
 
-| Spec file                               | States scanned                                                                              |
-| --------------------------------------- | ------------------------------------------------------------------------------------------- |
-| `tests/accessibility/auth.spec.ts`      | Login page (default), login page (invalid credentials error banner shown)                   |
-| `tests/accessibility/checkout.spec.ts`  | Step one (default), step one (blank-form validation error banner shown), step two, complete |
-| `tests/accessibility/cart.spec.ts`      | Cart with items, cart empty state                                                           |
-| `tests/accessibility/inventory.spec.ts` | Default state, item added to cart, sort dropdown with an option selected                    |
+| Spec file                               | States scanned                                                                                                                                  |
+| --------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| `tests/accessibility/auth.spec.ts`      | Login page (default), login page (invalid credentials error banner shown)                                                                       |
+| `tests/accessibility/checkout.spec.ts`  | Step one (default), step one (blank-form validation error banner shown), step two, complete                                                     |
+| `tests/accessibility/cart.spec.ts`      | Cart with items, cart empty state                                                                                                               |
+| `tests/accessibility/inventory.spec.ts` | Default state, item added to cart, sort dropdown with an option selected, item detail page (`standard_user`, default and ITEM NOT FOUND states) |
 
 ### Accessibility defect log
 
@@ -1617,7 +1618,7 @@ _Findings from the automated a11y suite. Kept separate from the general Defect l
 - **A11Y-001** is caught by both the login-page and checkout-step-one error-state scans; both scenarios are `test.skip`'d with the bug reference rather than left red.
 - **A11Y-002** is present on every inventory state scanned. The default-state and item-added-to-cart scans are `test.skip`'d with the bug reference. The third inventory scenario (sort dropdown with an option selected) instead uses `.disableRules(['select-name'])` rather than a full skip or `.exclude()` of the element — this keeps that control in scope for every other rule, so a _different_ violation introduced specifically by the "option selected" state would still be caught, rather than being masked along with the known one.
 
-No other violations were found across the 11 scanned states.
+No other violations were found across the 13 scanned states.
 
 ### Interaction-state testing notes
 
@@ -1726,7 +1727,7 @@ A specific claim was also investigated directly: "the item view doesn't show the
 **Areas needing follow-up:**
 
 - TC-035–038 are now automated in `tests/functional/inventory/inventory-details.spec.ts`; all pass except TC-037/TC-038, which are `test.skip`'d pending BUG-010/BUG-011 fixes (both confirmed to fail correctly with the skip removed).
-- Accessibility and visual regression coverage of the item detail page is unassessed for either user profile.
+- Accessibility coverage of the item detail page was added (2026-08-07) for `standard_user` — default state and the "ITEM NOT FOUND" state, both clean (see TC-021 / Accessibility summary). `problem_user` and visual regression coverage of this page remain unassessed.
 
 ---
 

@@ -1,38 +1,29 @@
 import { test, expect } from '@fixtures/app';
 
-import { formatAxeViolations } from '@utils/accessibility';
+import { InventoryDetailsPage } from '@pages/inventory-details.page';
+import { InventoryPage } from '@pages/inventory.page';
+import { A11yScenario, formatAxeViolations } from '@utils/accessibility';
 import { sortProductsByName } from '@utils/app';
 
 import INVENTORY_PRODUCTS from '@test-data/static/products.json';
 
-test.describe('inventory Accessibility Audits', { tag: '@a11y' }, () => {
-    test.describe('inventory default state', () => {
-        test.beforeEach(async ({ inventoryPage }) => {
+const SORT_DROPDOWN_MISSING_NAME_BUG =
+    'Bug found: the product sort dropdown (data-test="product-sort-container") has no accessible name - no aria-label, associated label, or title, so it fails the select-name rule';
+
+const INVENTORY_A11Y_SCENARIOS: A11yScenario<{
+    inventoryPage: InventoryPage;
+    inventoryDetailsPage: InventoryDetailsPage;
+}>[] = [
+    {
+        title: '[Accessibility]: Inventory page meets WCAG 2.1 AA standards',
+        setup: async ({ inventoryPage }): Promise<void> => {
             await inventoryPage.open();
-        });
-
-        test('[Accessibility]: Inventory page meets WCAG 2.1 AA standards', async ({
-            makeAxeBuilder,
-        }) => {
-            // eslint-disable-next-line playwright/no-skipped-test
-            test.skip(
-                true,
-                'Bug found: the product sort dropdown (data-test="product-sort-container") has no accessible name - no aria-label, associated label, or title, so it fails the select-name rule'
-            );
-
-            // Run the scan against current page DOM state
-            const scanResults = await makeAxeBuilder().analyze();
-            const violations = formatAxeViolations(scanResults.violations);
-
-            expect(
-                violations,
-                `Found ${violations.length} accessibility violations`
-            ).toEqual([]);
-        });
-    });
-
-    test.describe('inventory with item added to cart', () => {
-        test.beforeEach(async ({ inventoryPage }) => {
+        },
+        skipReason: SORT_DROPDOWN_MISSING_NAME_BUG,
+    },
+    {
+        title: '[Accessibility]: Check Inventory page with item added to cart',
+        setup: async ({ inventoryPage }): Promise<void> => {
             await inventoryPage.open();
 
             const firstProduct = await inventoryPage.getInventoryItemByName(
@@ -40,30 +31,12 @@ test.describe('inventory Accessibility Audits', { tag: '@a11y' }, () => {
             );
             await firstProduct!.addToCart();
             await expect(firstProduct!.removeFromCartButton).toBeVisible();
-        });
-
-        test('[Accessibility]: Check Inventory page with item added to cart', async ({
-            makeAxeBuilder,
-        }) => {
-            // eslint-disable-next-line playwright/no-skipped-test
-            test.skip(
-                true,
-                'Bug found: the product sort dropdown (data-test="product-sort-container") has no accessible name - no aria-label, associated label, or title, so it fails the select-name rule'
-            );
-
-            // Run the scan with the Remove button and cart badge present in the DOM
-            const scanResults = await makeAxeBuilder().analyze();
-            const violations = formatAxeViolations(scanResults.violations);
-
-            expect(
-                violations,
-                `Found ${violations.length} accessibility violations`
-            ).toEqual([]);
-        });
-    });
-
-    test.describe('inventory sort dropdown option selected', () => {
-        test.beforeEach(async ({ inventoryPage }) => {
+        },
+        skipReason: SORT_DROPDOWN_MISSING_NAME_BUG,
+    },
+    {
+        title: '[Accessibility]: Check Inventory page with sort dropdown option selected',
+        setup: async ({ inventoryPage }): Promise<void> => {
             await inventoryPage.open();
 
             // Native <select> option lists render as OS-level browser chrome
@@ -74,30 +47,57 @@ test.describe('inventory Accessibility Audits', { tag: '@a11y' }, () => {
             await inventoryPage.productsSort.focus();
             await expect(inventoryPage.productsSort).toBeFocused();
             await inventoryPage.productsSort.selectOption('za');
-        });
 
-        test('[Accessibility]: Check Inventory page with sort dropdown option selected', async ({
-            inventoryPage,
-            makeAxeBuilder,
-        }) => {
             const sortedProducts = await inventoryPage.listAllItemsData();
             expect(sortedProducts).toEqual(
                 sortProductsByName(INVENTORY_PRODUCTS, 'za')
             );
+        },
+        // Disables select-name only: it's a documented known issue (missing
+        // accessible name, tracked separately) - the dropdown itself stays in
+        // scope so any other violation introduced by this state is still caught.
+        disableRules: ['select-name'],
+    },
+    {
+        title: '[Accessibility]: Inventory item detail page meets WCAG 2.1 AA standards',
+        setup: async ({ inventoryDetailsPage }): Promise<void> => {
+            await inventoryDetailsPage.open(4);
+        },
+    },
+    {
+        title: '[Accessibility]: Check Inventory item detail page with an ITEM NOT FOUND state',
+        setup: async ({ inventoryDetailsPage }): Promise<void> => {
+            await inventoryDetailsPage.open(999);
+            await expect(inventoryDetailsPage.isItemNotFound()).resolves.toBe(
+                true
+            );
+        },
+    },
+];
 
-            // Run the scan against the page with an option selected. Disables
-            // select-name only: it's a documented known issue (missing accessible
-            // name, tracked separately) - the dropdown itself stays in scope so any
-            // other violation introduced by this state would still be caught.
-            const scanResults = await makeAxeBuilder()
-                .disableRules(['select-name'])
-                .analyze();
-            const violations = formatAxeViolations(scanResults.violations);
+test.describe('inventory Accessibility Audits', { tag: '@a11y' }, () => {
+    for (const scenario of INVENTORY_A11Y_SCENARIOS) {
+        test(
+            scenario.title,
+            async ({ inventoryPage, inventoryDetailsPage, makeAxeBuilder }) => {
+                // eslint-disable-next-line playwright/no-skipped-test
+                test.skip(
+                    Boolean(scenario.skipReason),
+                    scenario.skipReason ?? ''
+                );
 
-            expect(
-                violations,
-                `Found ${violations.length} accessibility violations`
-            ).toEqual([]);
-        });
-    });
+                await scenario.setup({ inventoryPage, inventoryDetailsPage });
+
+                const scanResults = await makeAxeBuilder()
+                    .disableRules(scenario.disableRules ?? [])
+                    .analyze();
+                const violations = formatAxeViolations(scanResults.violations);
+
+                expect(
+                    violations,
+                    `Found ${violations.length} accessibility violations`
+                ).toEqual([]);
+            }
+        );
+    }
 });
