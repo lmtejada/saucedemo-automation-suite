@@ -15,14 +15,18 @@
 - [6. Naming conventions](#6-naming-conventions)
 - [7. Lint rules & rationale](#7-lint-rules--rationale)
 - [8. Test data strategy](#8-test-data-strategy)
-- [9. Conventions & decisions](#9-conventions--decisions)
-    - [9.1 Multi-user-profile test coverage](#91-multi-user-profile-test-coverage)
-    - [9.2 Known-bug capture pattern (`test.skip` convention)](#92-known-bug-capture-pattern-testskip-convention)
-    - [9.3 Assert immediately, not eventually](#93-assert-immediately-not-eventually)
-    - [9.4 Verify tooling changes with a fresh process, not the IDE](#94-verify-tooling-changes-with-a-fresh-process-not-the-ide)
-    - [9.5 Accessibility scan conventions](#95-accessibility-scan-conventions)
-    - [9.6 Commit message & branch name conventions (Husky hooks)](#96-commit-message--branch-name-conventions-husky-hooks)
-- [10. Decision log](#10-decision-log)
+- [9. Test Gating & Reporting](#9-test-gating--reporting)
+    - [9.1 What blocks a merge to `main`](#91-what-blocks-a-merge-to-main)
+    - [9.2 Why `test:ci` and `test:main-gate` run different scopes](#92-why-testci-and-testmain-gate-run-different-scopes)
+    - [9.3 Report publishing](#93-report-publishing)
+- [10. Conventions & decisions](#10-conventions--decisions)
+    - [10.1 Multi-user-profile test coverage](#101-multi-user-profile-test-coverage)
+    - [10.2 Known-bug capture pattern (`test.skip` convention)](#102-known-bug-capture-pattern-testskip-convention)
+    - [10.3 Assert immediately, not eventually](#103-assert-immediately-not-eventually)
+    - [10.4 Verify tooling changes with a fresh process, not the IDE](#104-verify-tooling-changes-with-a-fresh-process-not-the-ide)
+    - [10.5 Accessibility scan conventions](#105-accessibility-scan-conventions)
+    - [10.6 Commit message & branch name conventions (Husky hooks)](#106-commit-message--branch-name-conventions-husky-hooks)
+- [11. Decision log](#11-decision-log)
 
 ---
 
@@ -99,16 +103,16 @@ src/
 
 Every test carries at least one `@tag` in its `{ tag: ... }` option, matched by `--grep` in npm scripts.
 
-| Tag            | Meaning                                                             | Script                                                                                                                                       |
-| -------------- | ------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| `@smoke`       | Fast, happy-path checks of core workflows                           | `npm run test:smoke`                                                                                                                         |
-| `@regression`  | Broader functional and negative-path coverage                       | `npm run test:regression`                                                                                                                    |
-| `@e2e`         | Full multi-page journey tests (everything under `tests/e2e/`)       | `npm run test:e2e`                                                                                                                           |
-| `@security`    | Auth/session boundary checks (route bypass, session isolation)      | No dedicated script yet — reachable via `--grep @security`, otherwise swept up by `@regression`                                              |
-| `@performance` | SLA/latency assertions (e.g. `performance_glitch_user` timing)      | No dedicated script yet — always paired with `@problematic` today                                                                            |
-| `@problematic` | Tests that must run on a single worker / touch known-flaky profiles | `npm run test:problematic` (`--workers=1`)                                                                                                   |
-| `@visual`      | Snapshot comparisons via `toHaveScreenshot`                         | `npm run test:visual`                                                                                                                        |
-| `@a11y`        | Accessibility scans                                                 | `npm run test:a11y` — real `@axe-core/playwright` scans across `tests/accessibility/` (auth, checkout, cart, inventory), see TC-021 and §9.5 |
+| Tag            | Meaning                                                             | Script                                                                                                                                        |
+| -------------- | ------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| `@smoke`       | Fast, happy-path checks of core workflows                           | `npm run test:smoke`                                                                                                                          |
+| `@regression`  | Broader functional and negative-path coverage                       | `npm run test:regression`                                                                                                                     |
+| `@e2e`         | Full multi-page journey tests (everything under `tests/e2e/`)       | `npm run test:e2e`                                                                                                                            |
+| `@security`    | Auth/session boundary checks (route bypass, session isolation)      | No dedicated script yet — reachable via `--grep @security`, otherwise swept up by `@regression`                                               |
+| `@performance` | SLA/latency assertions (e.g. `performance_glitch_user` timing)      | No dedicated script yet — always paired with `@problematic` today                                                                             |
+| `@problematic` | Tests that must run on a single worker / touch known-flaky profiles | `npm run test:problematic` (`--workers=1`)                                                                                                    |
+| `@visual`      | Snapshot comparisons via `toHaveScreenshot`                         | `npm run test:visual`                                                                                                                         |
+| `@a11y`        | Accessibility scans                                                 | `npm run test:a11y` — real `@axe-core/playwright` scans across `tests/accessibility/` (auth, checkout, cart, inventory), see TC-021 and §10.5 |
 
 `@security` and `@performance` existing without their own script is a real, current gap, not an oversight to gloss over — flagging it here so it's a deliberate backlog item rather than a surprise.
 
@@ -144,8 +148,8 @@ auth (runs auth.setup.ts)
 - **Test titles:** prefixed with the TC number when the test automates a documented TEST-CASES.md entry — `'[TC-012]: Complete full checkout purchase flow'`. Tests without a dedicated TC use a generic label instead: `[Smoke]`, `[Regression]`. This makes automation ↔ documentation traceability a `grep -rn "TC-012"` away in both directions, rather than relying on the "Automation reference" field in TEST-CASES.md staying manually accurate (it doesn't, reliably).
 - **Describe-block shape:** an outer `test.describe('<feature> feature')`, with inner blocks tagged by concern — `functional tests @regression`, `test user journey @smoke`, `validation scenarios @regression`, `<profile> feature quirks @regression`.
 - **Page objects:** one `<Page>Page` class per page (`CartPage`, `CheckoutStepOnePage`); reusable per-row pieces are `<Thing>Component` (`CartItemComponent`, `InventoryItemComponent`), constructed with a `rootLocator` so the same component class works for any matching row.
-- **Commit messages:** Conventional Commits format (`<type>: <description>`) — see §9.6 for the enforced type list and rationale.
-- **Branch names:** `<type>/<description>`, `<type>` one of `feat`, `fix`, `release`, `epic` (`main` itself is exempt) — see §9.6.
+- **Commit messages:** Conventional Commits format (`<type>: <description>`) — see §10.6 for the enforced type list and rationale.
+- **Branch names:** `<type>/<description>`, `<type>` one of `feat`, `fix`, `release`, `epic` (`main` itself is exempt) — see §10.6.
 
 ---
 
@@ -153,42 +157,73 @@ auth (runs auth.setup.ts)
 
 The notable rules enforced in `eslint.config.mts`, and why each exists (not an exhaustive list — see the file itself for everything inherited from `playwright/flat/recommended`):
 
-| Rule                                                                   | Why                                                                                                                                                                                                                         |
-| ---------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `playwright/no-wait-for-timeout` (error)                               | No hard waits — forces explicit/web-first waiting. This is why the SLA tests time real navigation instead of sleeping.                                                                                                      |
-| `playwright/prefer-web-first-assertions`                               | Auto-retrying assertions (`expect(locator).toBeVisible()`) over manual, non-retrying reads.                                                                                                                                 |
-| `playwright/no-raw-locators` (warn)                                    | Semantic locators (`getByRole`, `getByTestId`) over brittle CSS/XPath.                                                                                                                                                      |
-| `playwright/no-skipped-test` (error)                                   | Blocks `test.skip` by default — but is deliberately overridden per-line (`eslint-disable-next-line`) for the known-bug pattern in §9.2. That's an intentional, documented exception, not the rule being routinely bypassed. |
-| `playwright/no-focused-test` (error)                                   | No `test.only`/`describe.only` left in commits — a full CI run would otherwise silently skip every other file.                                                                                                              |
-| `no-restricted-syntax` (custom)                                        | Disallows `await` inside `expect(...)` — enforces `await expect(x).resolves.toBe(y)` instead of `expect(await x).toBe(y)`, for consistent web-first-style assertions even on plain promises.                                |
-| `import-x/order`                                                       | Enforced import grouping/alphabetization — see §3 for the alias-specific ordering rule.                                                                                                                                     |
-| `@typescript-eslint/no-floating-promises`                              | Every `async` page-object call must be awaited — a huge source of Playwright flakiness otherwise.                                                                                                                           |
-| `@typescript-eslint/no-explicit-any` / `explicit-function-return-type` | Strict typing discipline on page objects and fixtures, where a wrong type is easy to miss without it.                                                                                                                       |
+| Rule                                                                   | Why                                                                                                                                                                                                                          |
+| ---------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `playwright/no-wait-for-timeout` (error)                               | No hard waits — forces explicit/web-first waiting. This is why the SLA tests time real navigation instead of sleeping.                                                                                                       |
+| `playwright/prefer-web-first-assertions`                               | Auto-retrying assertions (`expect(locator).toBeVisible()`) over manual, non-retrying reads.                                                                                                                                  |
+| `playwright/no-raw-locators` (warn)                                    | Semantic locators (`getByRole`, `getByTestId`) over brittle CSS/XPath.                                                                                                                                                       |
+| `playwright/no-skipped-test` (error)                                   | Blocks `test.skip` by default — but is deliberately overridden per-line (`eslint-disable-next-line`) for the known-bug pattern in §10.2. That's an intentional, documented exception, not the rule being routinely bypassed. |
+| `playwright/no-focused-test` (error)                                   | No `test.only`/`describe.only` left in commits — a full CI run would otherwise silently skip every other file.                                                                                                               |
+| `no-restricted-syntax` (custom)                                        | Disallows `await` inside `expect(...)` — enforces `await expect(x).resolves.toBe(y)` instead of `expect(await x).toBe(y)`, for consistent web-first-style assertions even on plain promises.                                 |
+| `import-x/order`                                                       | Enforced import grouping/alphabetization — see §3 for the alias-specific ordering rule.                                                                                                                                      |
+| `@typescript-eslint/no-floating-promises`                              | Every `async` page-object call must be awaited — a huge source of Playwright flakiness otherwise.                                                                                                                            |
+| `@typescript-eslint/no-explicit-any` / `explicit-function-return-type` | Strict typing discipline on page objects and fixtures, where a wrong type is easy to miss without it.                                                                                                                        |
 
 ---
 
 ## 8. Test data strategy
 
 - **`test-data/static/`** — fixed, deterministic fixtures: `users.json` (credential/description pairs driving the data-driven negative-login loop), `products.json` (the canonical product catalog, used both as the expected-value source _and_ as a selector, e.g. `INVENTORY_PRODUCTS[0]`), `order-details.json` (an expected order-summary snapshot for the step-two regression check).
-- **`test-data/factories/`** — functions that generate data with overrides: `checkout-customer-form.factory.ts`'s `buildCheckoutData(overrides)` plus its `VALIDATION_SCENARIOS` array, where each scenario can carry an optional `skip`/`skipReason` pair wired directly into the test loop (see §9.2 — this is how BUG-001's whitespace-postal-code scenario is captured).
+- **`test-data/factories/`** — functions that generate data with overrides: `checkout-customer-form.factory.ts`'s `buildCheckoutData(overrides)` plus its `VALIDATION_SCENARIOS` array, where each scenario can carry an optional `skip`/`skipReason` pair wired directly into the test loop (see §10.2 — this is how BUG-001's whitespace-postal-code scenario is captured).
 
 **Rule of thumb:** if the data represents "this is what the real catalog/app looks like" as a fixed fact, it belongs in `static/`. If it's "a valid baseline with deliberate variations for edge cases," it belongs in `factories/`.
 
 ---
 
-## 9. Conventions & decisions
+## 9. Test Gating & Reporting
 
-### 9.1 Multi-user-profile test coverage
+### 9.1 What blocks a merge to `main`
+
+Branch protection on `main` requires three status checks to pass, all of which run on the PR itself:
+
+- `Lint & Typecheck` — from `on_branch_push.yml`
+- `Smoke Tests` (`test:smoke`) — from `on_branch_push.yml`
+- `Check Changes introduced to Main branch (cross-browser)` (`test:main-gate`) — from `on_main_pr.yml`
+
+`playwright.yml`'s `test:ci` run is deliberately **not** part of the gate: it only runs on push to `main`, which means after a merge already happened. A check that can't run until after the thing it might block has already occurred isn't a gate — it's a post-merge health check. See TEST-PLAN.md §8.1–8.2 for the full trigger matrix this is drawn from.
+
+### 9.2 Why `test:ci` and `test:main-gate` run different scopes
+
+These are two separate workflows owning two separate gates, not the same suite run twice:
+
+- **`test:main-gate`** (`playwright test --grep-invert @problematic`, no `--project` flag) runs on every PR into `main`, via `on_main_pr.yml`. No `--project` flag means every configured project runs — all three browser engines — and every tag except `@problematic`, including `@visual`.
+- **`test:ci`** (`playwright test --grep "@regression|@e2e|@a11y" --project=chromium`) runs on every push to `main`, via `playwright.yml`. Deliberately narrower: one browser, three tags, no visual regression.
+
+**Why:** the expensive, exhaustive run happens once, pre-merge, when it can still block a bad PR. The post-merge run only needs to confirm `main` is still healthy after the merge landed, so it stays fast rather than repeating the full cross-browser/visual sweep on every single push.
+
+### 9.3 Report publishing
+
+- `playwright.yml` (push to `main`) deploys to GitHub Pages at `/report/`.
+- `on_main_pr.yml` (PR to `main`) deploys to GitHub Pages at `/changes-report/`.
+- `on_branch_push.yml`'s smoke job is artifact-only (`smoke-test-report`, 30-day retention) — it does not deploy to Pages.
+
+Each workflow deploys to its own Pages path so the two never overwrite each other, but within a single path, every run overwrites the previous one — neither keeps deploy history. See TEST-PLAN.md §8.2 for the full reporting architecture, and README.md for the live report links.
+
+---
+
+## 10. Conventions & decisions
+
+### 10.1 Multi-user-profile test coverage
 
 **Rule:** Add a profile-specific test only where there is _evidence_ of behavioral divergence from the baseline profile (`standard_user`) — found via exploratory probing, prior defect history, or documented persona behavior. Do not blanket-duplicate every test across every profile.
 
 **Why:** SauceDemo ships several non-standard personas (`problem_user`, `performance_glitch_user`, `locked_out_user`). Cross-multiplying every existing test × every profile balloons suite runtime and maintenance for near-zero marginal signal on the tests that don't actually diverge — nobody needs a `problem_user` variant of "inventory page loads successfully."
 
-**How to apply:** When a profile is suspected of diverging on a specific feature, verify it first with a throwaway diagnostic script (§9.4) before writing anything permanent. If it diverges, pair the new test with its baseline counterpart (e.g., TC-006 sorts correctly for `standard_user`; TC-030 documents the same dropdown doing nothing for `problem_user`). If it _doesn't_ diverge, don't add the test — write down that it was checked and found equivalent, so nobody re-investigates the same question later.
+**How to apply:** When a profile is suspected of diverging on a specific feature, verify it first with a throwaway diagnostic script (§10.4) before writing anything permanent. If it diverges, pair the new test with its baseline counterpart (e.g., TC-006 sorts correctly for `standard_user`; TC-030 documents the same dropdown doing nothing for `problem_user`). If it _doesn't_ diverge, don't add the test — write down that it was checked and found equivalent, so nobody re-investigates the same question later.
 
 **Example of "checked, found equivalent, left alone":** cart-page interactions (remove-from-cart, Continue Shopping, Checkout button) were explicitly verified working correctly for `problem_user` — only the _inventory page's_ Remove button is broken (BUG-007). No `problem_user` cart-page tests were added as a result; that's a deliberate absence, not an oversight.
 
-### 9.2 Known-bug capture pattern (`test.skip` convention)
+### 10.2 Known-bug capture pattern (`test.skip` convention)
 
 **Rule:** When exploratory testing or normal test-writing surfaces a genuine defect, don't just note it — capture it in code:
 
@@ -201,11 +236,11 @@ The notable rules enforced in `eslint.config.mts`, and why each exists (not an e
 3. Keep the _full_ repro steps intact, not truncated at the failure point — so the moment the bug is fixed and someone removes the skip, the test either passes end-to-end or fails somewhere new (which is itself useful information).
 4. Log a matching row in TEST-CASES.md's Defect log with concrete repro steps and the linked TC.
 
-**Why:** This keeps bugs _executable_ documentation instead of prose that drifts out of sync with reality. A skipped test with a clear reason is more valuable than a passing test that quietly asserts broken behavior as if it were correct, and more valuable than an unskipped test that fails opaquely (§9.3).
+**Why:** This keeps bugs _executable_ documentation instead of prose that drifts out of sync with reality. A skipped test with a clear reason is more valuable than a passing test that quietly asserts broken behavior as if it were correct, and more valuable than an unskipped test that fails opaquely (§10.3).
 
 **Decision — uniform treatment, no special-casing "permanent" quirks:** Some of these bugs (e.g., `problem_user`'s identical broken product images, non-functional sort) are the _deliberate, permanent_ design of that demo persona — they will likely never be "fixed" in the way BUG-001–004 might be. We considered giving those a different treatment (a passing test that just documents the known quirk, no Defect log entry). We chose **not** to special-case them: every profile-specific divergence goes through the same `test.skip` + Defect log pipeline, regardless of whether it's realistically fixable. Rationale: one consistent pattern is easier to maintain and grep for than two parallel philosophies, and it keeps every known divergence visible in one place (the Defect log) rather than some being silently accepted inside test bodies where they're easy to miss.
 
-### 9.3 Assert immediately, not eventually
+### 10.3 Assert immediately, not eventually
 
 **Rule:** After any step that can silently fail to navigate/transition (form submission, button click that depends on validation), assert the resulting state (usually a URL) before calling the next page object method.
 
@@ -213,23 +248,23 @@ The notable rules enforced in `eslint.config.mts`, and why each exists (not an e
 
 **How to apply:** `await expect(page).toHaveURL(/next-step\.html/);` right after any navigation-triggering action, even in "happy path" tests. See `tests/functional/checkout/shipping.spec.ts` for the convention.
 
-### 9.4 Verify tooling changes with a fresh process, not the IDE
+### 10.4 Verify tooling changes with a fresh process, not the IDE
 
 **Rule:** After editing `tsconfig.json` or `eslint.config.mts` (new path aliases, new lint rules), verify with a freshly-spawned CLI process (`npx eslint <file>`, `npx tsc --noEmit`) — don't trust the VS Code ESLint/TS language server's live diagnostics for the verdict.
 
 **Why:** Hit this twice. The editor's language server caches `tsconfig.json` path resolution and doesn't reliably pick up newly-added aliases without an explicit restart ("ESLint: Restart ESLint Server"). This produced confusing false-positive/false-negative diagnostics in the editor (e.g., a newly-added `@utils/*` alias briefly misclassified as an unresolved external import) that a fresh `npx eslint` process didn't reproduce at all.
 
-### 9.5 Accessibility scan conventions
+### 10.5 Accessibility scan conventions
 
 **Rule — page objects wait on a real `data-test` container after navigation, not just `domcontentloaded`:** Every `open()` in `src/pages/*.ts` does `goto(url, { waitUntil: 'domcontentloaded' })` followed by `this.pageContainer.waitFor({ state: 'visible' })`, where `pageContainer` is the page's actual container element (verified against the live DOM, e.g. `login-container`, `inventory-container`, `checkout-summary-container` — not a guessed selector).
 
 **Why:** SauceDemo is client-rendered — `domcontentloaded` only guarantees the initial HTML shell parsed, not that the app has mounted its content. `page.evaluate()` (what `@axe-core/playwright`'s `analyze()` uses to inject) has no auto-wait and can run against a stale execution context mid-hydration, throwing `Execution context was destroyed, most likely because of a navigation` — disproportionately on Firefox/WebKit, which are stricter than Chromium about invalidating a stale context (Chromium's CDP-based `evaluate` silently retries). Every other action in the suite (`click`/`fill`/`expect`) auto-waits for actionability and never hit this race, which is why it only surfaced once accessibility scans were added.
 
-**Rule — prefer `test.skip` for a known violation that blocks an entire scan, `.disableRules([...])` for one that shouldn't block scanning the rest of the page:** When a scan's assertion is entirely blocked by one already-logged accessibility defect, skip the test (`test.skip(true, 'Bug found: ... - see A11Y-0XX')`), same pattern as §9.2. When the test's purpose is to verify a _different_ interaction state (e.g. an option now selected) and the known defect is incidental to that state rather than the point of the test, use `makeAxeBuilder().disableRules([...])` instead — this keeps the offending element in scope for every other rule, so a genuinely new violation introduced by that state still fails the test. Avoid `.exclude(selector)` for this purpose: it removes the element from the scan entirely, which would also hide an unrelated new violation on that same element.
+**Rule — prefer `test.skip` for a known violation that blocks an entire scan, `.disableRules([...])` for one that shouldn't block scanning the rest of the page:** When a scan's assertion is entirely blocked by one already-logged accessibility defect, skip the test (`test.skip(true, 'Bug found: ... - see A11Y-0XX')`), same pattern as §10.2. When the test's purpose is to verify a _different_ interaction state (e.g. an option now selected) and the known defect is incidental to that state rather than the point of the test, use `makeAxeBuilder().disableRules([...])` instead — this keeps the offending element in scope for every other rule, so a genuinely new violation introduced by that state still fails the test. Avoid `.exclude(selector)` for this purpose: it removes the element from the scan entirely, which would also hide an unrelated new violation on that same element.
 
 **How to apply:** See `tests/accessibility/inventory.spec.ts` — the default-state and item-added-to-cart scans `test.skip` against A11Y-002 (the scan's whole point is scanning the page, and the known defect blocks that outright), while the sort-dropdown-selected scan uses `.disableRules(['select-name'])` (the point of that test is the "option selected" state, and the missing-label issue on the dropdown is orthogonal to it).
 
-### 9.6 Commit message & branch name conventions (Husky hooks)
+### 10.6 Commit message & branch name conventions (Husky hooks)
 
 **Rule — commit messages:** `commitlint.config.js` extends `@commitlint/config-conventional`; a `commit-msg` Husky hook (`.husky/commit-msg`, runs `npx commitlint --edit "$1"`) checks every local commit against it. Allowed types: `build`, `chore`, `ci`, `docs`, `feat`, `fix`, `perf`, `refactor`, `revert`, `style`, `test`.
 
@@ -239,24 +274,24 @@ The notable rules enforced in `eslint.config.mts`, and why each exists (not an e
 
 ---
 
-## 10. Decision log
+## 11. Decision log
 
 Append-only. One entry per non-obvious call, newest first.
 
 **2026-08-07 — GitHub repository ruleset added as a server-side backstop for branch-name prefixes**
-Closes the gap noted in the entry below: a ruleset targeting all branches, excluding `main`, `feat/**`, `fix/**`, `release/**`, `epic/**`, with **Restrict creations** enabled. Branch creation outside those patterns is now blocked by GitHub itself, not just the local `pre-push` hook — this one can't be bypassed with `--no-verify`. Commit-message linting (via `commitlint`) still has no equivalent server-side backstop; see §9.6.
+Closes the gap noted in the entry below: a ruleset targeting all branches, excluding `main`, `feat/**`, `fix/**`, `release/**`, `epic/**`, with **Restrict creations** enabled. Branch creation outside those patterns is now blocked by GitHub itself, not just the local `pre-push` hook — this one can't be bypassed with `--no-verify`. Commit-message linting (via `commitlint`) still has no equivalent server-side backstop; see §10.6.
 
 **2026-08-07 — Branch-name prefixes (`feat/`, `fix/`, `release/`, `epic/`) enforced via a `pre-push` Husky hook**
-Checks the current branch name against `^(feat|fix|release|epic)/.+`, exempting `main`. See the entry above for the GitHub ruleset added as a server-side backstop, and §9.6.
+Checks the current branch name against `^(feat|fix|release|epic)/.+`, exempting `main`. See the entry above for the GitHub ruleset added as a server-side backstop, and §10.6.
 
 **2026-08-07 — Conventional Commits enforced via `commitlint` + a `commit-msg` Husky hook; the CI backstop was added then reverted**
-Added `commitlint.config.js` (extends `@commitlint/config-conventional`) and a `.husky/commit-msg` hook. Enforcement is local-only for now. See §9.6.
+Added `commitlint.config.js` (extends `@commitlint/config-conventional`) and a `.husky/commit-msg` hook. Enforcement is local-only for now. See §10.6.
 
-**2026-08-07 — `test:ci` (push to `main`) and `test:main-gate` (PR to `main`) deliberately run different scopes**
-Two separate workflows own two separate gates: `on_main_pr.yml` runs `test:main-gate` on every PR into `main`, and `playwright.yml` runs `test:ci` on every push to `main` (i.e. after merge). They aren't the same suite at two trigger points — `test:main-gate` (`playwright test --grep-invert @problematic`) has no `--project` flag, so it runs every tag except `@problematic` — including `@visual` — across all three browser engines. `test:ci` (`playwright test --grep "@regression|@e2e|@a11y" --project=chromium`) is deliberately narrower: one browser, three tags, no visual regression. The intent is that the expensive, exhaustive run happens once, pre-merge, when it can still block a bad PR; the post-merge run only needs to confirm `main` is still healthy, so it stays fast rather than repeating the full cross-browser/visual sweep on every push. Each workflow also deploys its report to its own Pages path (`changes-report/` vs `report/`) so the two never overwrite each other.
+**2026-08-07 — `test:ci` and `test:main-gate` run different scopes**
+See §9.2 and §9.3 — condensed: the exhaustive cross-browser + `@visual` run happens once, pre-merge, where it can still block a bad PR; the post-merge run only confirms `main` is still healthy, so it stays narrow and fast. Each workflow publishes its report to its own GitHub Pages path so they never overwrite each other.
 
 **2026-08-06 — Every page object's `open()` now waits on a real container locator, not just `domcontentloaded`**
-Building the `@a11y` suite surfaced `Execution context was destroyed, most likely because of a navigation` on Firefox/WebKit in `checkout.spec.ts`, traced to `page.evaluate()` (used by `@axe-core/playwright`) racing SauceDemo's post-`domcontentloaded` hydration. Fixed by adding a `pageContainer` locator to all 6 page objects and waiting on it after `goto()`, rather than special-casing the fix inside the accessibility fixture — the race was latent in every page object already, `@axe-core/playwright` just happened to be the first caller without Playwright's built-in actionability auto-wait to mask it. See §9.5.
+Building the `@a11y` suite surfaced `Execution context was destroyed, most likely because of a navigation` on Firefox/WebKit in `checkout.spec.ts`, traced to `page.evaluate()` (used by `@axe-core/playwright`) racing SauceDemo's post-`domcontentloaded` hydration. Fixed by adding a `pageContainer` locator to all 6 page objects and waiting on it after `goto()`, rather than special-casing the fix inside the accessibility fixture — the race was latent in every page object already, `@axe-core/playwright` just happened to be the first caller without Playwright's built-in actionability auto-wait to mask it. See §10.5.
 
 **2026-07-31 — `functional/lifecycle/` renamed to `functional/navigation/`, consolidated into one spec file**
 The folder started as `lifecycle/logout.spec.ts` for TC-015 alone. "Lifecycle" read as ambiguous (app/component lifecycle, not user session) once two more sidebar-menu test cases (TC-032 "All Items", TC-033 "Reset App State") were added, so the folder and TEST-CASES.md module 6 were renamed to "Navigation Menu" — a name that describes the UI surface under test rather than a vague concept. All three cases exercise the same hamburger sidebar component, so they were kept in a single `sidebar-menu.spec.ts` file rather than split one-file-per-action, matching the `functional/` convention of one file per feature area (see `shopping-cart.spec.ts` for the same reasoning applied to the cart page).
