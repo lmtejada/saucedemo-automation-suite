@@ -272,11 +272,22 @@ Each workflow deploys to its own Pages path so the two never overwrite each othe
 
 **Why:** this repo merges PRs into `main` with regular merges, not squash — every individual commit message lands in `main`'s permanent history, not just the PR title. That makes commit-message quality worth enforcing at commit time rather than only at merge time. Branch prefixes exist so a branch name says what kind of work it is without opening it — `feat/`, `fix/`, `release/`, `epic/`. Branch names get the server-side backstop and commit messages don't, because a ruleset can enforce a name pattern on creation, but there's no equivalent GitHub-native way to enforce individual commit message format on a regular (non-squash) merge.
 
+### 10.7 CI never loads a `.env.*` file — only local runs do
+
+**Rule:** `playwright.config.ts` skips the `dotenv.config()` call entirely when `process.env.CI` is set: `if (!process.env.CI) { ... }`. On CI, every var the suite needs (`APP_URL`, `USER_NAME`, `USER_PASSWORD`, etc.) is injected as a job-level `env:` in the workflow YAML from repo `vars`/`secrets` instead.
+
+**Why:** Before this guard, the config unconditionally tried `dotenv.config({ path: '.env.dev' })` on every run because `ENVIRONMENT` is never set in CI. `.env.dev` isn't checked in, so that call silently no-op'd on the runner — the suite still passed only because `dotenv.config()` doesn't overwrite vars already present in `process.env`, and the workflow-injected vars got there first. That's coincidental correctness: the config _looked_ like it was loading a dev env file in CI, when really CI was bypassing the dotenv mechanism completely. It also meant adding a new environment (e.g. `staging`) looked like "just add `.env.staging`," when it actually requires a corresponding `env:` block in the workflow(s) too — the `.env.*` file alone does nothing on CI.
+
+**How to apply:** `.env.*` files are a local-dev-only convenience. Any new environment needs both a local `.env.<name>` (for `ENVIRONMENT=<name> npx playwright test` runs) _and_ a matching `env:` block added to whichever workflow(s) should exercise it — see the table in [CLAUDE.md](../CLAUDE.md#ci-workflows-githubworkflows) for which workflow owns which trigger.
+
 ---
 
 ## 11. Decision log
 
 Append-only. One entry per non-obvious call, newest first.
+
+**2026-08-11 — `playwright.config.ts` skips `dotenv.config()` on CI instead of letting it silently no-op**
+The config always attempted to load `.env.dev` (since `ENVIRONMENT` is never set in CI) even though no `.env.*` file is checked in. It "worked" only because CI-injected job env vars land in `process.env` before `dotenv.config()` runs, and `dotenv` never overwrites existing vars — but that made the CI path coincidental rather than intentional. Now guarded behind `if (!process.env.CI)`, so the config is explicit that CI supplies everything via workflow `env:` blocks. See §10.7.
 
 **2026-08-07 — GitHub repository ruleset added as a server-side backstop for branch-name prefixes**
 Closes the gap noted in the entry below: a ruleset targeting all branches, excluding `main`, `feat/**`, `fix/**`, `release/**`, `epic/**`, with **Restrict creations** enabled. Branch creation outside those patterns is now blocked by GitHub itself, not just the local `pre-push` hook — this one can't be bypassed with `--no-verify`. Commit-message linting (via `commitlint`) still has no equivalent server-side backstop; see §10.6.
