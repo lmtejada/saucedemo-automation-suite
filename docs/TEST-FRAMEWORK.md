@@ -26,6 +26,8 @@
     - [10.4 Verify tooling changes with a fresh process, not the IDE](#104-verify-tooling-changes-with-a-fresh-process-not-the-ide)
     - [10.5 Accessibility scan conventions](#105-accessibility-scan-conventions)
     - [10.6 Commit message & branch name conventions (Husky hooks)](#106-commit-message--branch-name-conventions-husky-hooks)
+    - [10.7 CI never loads a `.env.*` file — only local runs do](#107-ci-never-loads-a-env-file--only-local-runs-do)
+    - [10.8 Bug report issue template & severity labels](#108-bug-report-issue-template--severity-labels)
 - [11. Decision log](#11-decision-log)
 
 ---
@@ -280,11 +282,22 @@ Each workflow deploys to its own Pages path so the two never overwrite each othe
 
 **How to apply:** `.env.*` files are a local-dev-only convenience. Any new environment needs both a local `.env.<name>` (for `ENVIRONMENT=<name> npx playwright test` runs) _and_ a matching `env:` block added to whichever workflow(s) should exercise it — see the table in [CLAUDE.md](../CLAUDE.md#ci-workflows-githubworkflows) for which workflow owns which trigger.
 
+### 10.8 Bug report issue template & severity labels
+
+**Rule:** Defects are filed via the GitHub Issue Form at `.github/ISSUE_TEMPLATE/bug_report.yml` (referenced by TEST-PLAN §12.2), not free-form issues. It captures repro steps, expected/actual, linked TC, browser(s), and found-via (automated run vs. exploratory session). Severity is **not** a form field — it's assigned by triage as one of the repo's `severity:critical`/`severity:high`/`severity:medium`/`severity:low` labels, matching TEST-PLAN §12.1's four definitions, after reading the report.
+
+**Why:** severity is a judgment call best made by whoever triages the report, not self-assessed by the reporter — reporters skew toward over-rating impact. Keeping it out of the form also means severity lives in exactly one place (the label), which shows on the Issues list and issue header, rather than as free text that could drift from the label applied later.
+
+**How to apply:** the title field is pre-filled with `[BUG-0XX] ` — leave the placeholder for triage to replace with the next sequential id, and apply the matching `severity:*` label, when mirroring the issue into TEST-CASES.md's Defect log (numbering stays manual/sequential).
+
 ---
 
 ## 11. Decision log
 
 Append-only. One entry per non-obvious call, newest first.
+
+**2026-08-11 — Added the missing `bug_report.yml` issue form + `severity:*` labels**
+TEST-PLAN §12.2 referenced `.github/ISSUE_TEMPLATE/bug_report.yml` but the file never existed. Created it with fields matching the Defect log's format (repro steps, expected/actual, linked TC, browser(s), found via), plus four new repo labels (`severity:critical/high/medium/low`) matching §12.1's definitions. Severity is deliberately not a form field — it's assigned by triage as a label after reading the report, rather than self-selected by the reporter, since severity is a judgment call and reporters skew toward over-rating impact. See §10.8.
 
 **2026-08-11 — `playwright.config.ts` skips `dotenv.config()` on CI instead of letting it silently no-op**
 The config always attempted to load `.env.dev` (since `ENVIRONMENT` is never set in CI) even though no `.env.*` file is checked in. It "worked" only because CI-injected job env vars land in `process.env` before `dotenv.config()` runs, and `dotenv` never overwrites existing vars — but that made the CI path coincidental rather than intentional. Now guarded behind `if (!process.env.CI)`, so the config is explicit that CI supplies everything via workflow `env:` blocks. See §10.7.
