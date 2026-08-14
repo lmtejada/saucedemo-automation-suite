@@ -1,0 +1,64 @@
+name: Bug Report
+description: Report a defect found during exploratory testing or automated test execution.
+title: "[BUG-0XX] "
+labels: ["bug"]
+body:
+    - type: markdown
+      attributes:
+          value: |
+              Fill this out with enough detail to reproduce the defect and file it in `docs/TEST-CASES.md`'s Defect log (or the Accessibility summary's `A11Y-` log for accessibility findings).
+              Leave `0XX` in the title for triage to fill in with the next sequential BUG-XXX id. Triage will also apply a `severity:*` label (see TEST-PLAN.md §12.1 for definitions) — no need to self-assess severity below.
+
+    - type: textarea
+      id: repro-steps
+      attributes:
+          label: Steps to reproduce
+          description: Numbered steps, same format as the Defect log entries in TEST-CASES.md.
+          placeholder: |
+              1. ...
+              2. ...
+              3. ...
+      validations:
+          required: true
+
+    - type: textarea
+      id: expected-actual
+      attributes:
+          label: Expected vs. Actual
+          placeholder: |
+              Expected: ...
+              Actual: ...
+      validations:
+          required: true
+
+    - type: input
+      id: linked-tc
+      attributes:
+          label: Linked test case (optional)
+          description: TC-XXX from TEST-CASES.md, if this was found via a documented test case rather than exploratory testing.
+          placeholder: "TC-013"
+      validations:
+          required: false
+
+    - type: dropdown
+      id: browsers
+      attributes:
+          label: Browser(s)
+          multiple: true
+          options:
+              - Chromium
+              - Firefox
+              - WebKit
+              - Not browser-specific
+      validations:
+          required: true
+
+    - type: dropdown
+      id: found-via
+      attributes:
+          label: Found via
+          options:
+              - Automated pipeline
+              - Exploratory session
+      validations:
+          required: true

@@ -1,9 +1,9 @@
 # Test Plan — Swag Labs E-commerce Demo
 
-**Version:** 1.4
+**Version:** 1.5
 **Status:** In Review
 **Author:** Laura Tejada
-**Last updated:** 03.08.2026
+**Last updated:** 07.08.2026
 **Reviewed by:** Claude
 
 ---
@@ -213,6 +213,12 @@ Given that, TC-017 intentionally does not assert against the exact ~10-minute va
     `test:ci` (`playwright.yml`) is deliberately left out of the gate: it only runs on push to `main`, after a merge already happened, so it can't block one.
 
 - **Artifact Retention:** Every pipeline run uploads the Playwright HTML report as a single GitHub Actions artifact (30-day retention). The report is self-contained — it embeds traces, videos, and screenshots for any failed or retried test directly inside it — so one artifact download is enough to fully debug a CI failure without a local re-run. Browser console log capture is not yet implemented.
+- **Live Report Deployment:** `playwright.yml` and `on_main_pr.yml` additionally deploy their HTML report to GitHub Pages (via `peaceiris/actions-gh-pages`), so the latest result is browsable without downloading an artifact:
+    - Push-to-`main` (`playwright.yml`) → `https://<org>.github.io/<repo>/report/`
+    - PR-to-`main` (`on_main_pr.yml`) → `https://<org>.github.io/<repo>/changes-report/`
+
+    Both paths are overwritten on every run — neither keeps deploy history, so the URL always reflects only the most recent run on that trigger. `on_branch_push.yml`'s smoke job is artifact-only; it does not deploy to Pages.
+
 - **Reporting Access:** The framework triggers an automated pipeline step upon test completion to output a link to the Playwright report overview directly inside the active GitHub Actions console runner.
 - **Alert Escalation (nice-to-have):** Pushing automated failure notifications (e.g. a Slack message or PR comment with the failing stack trace) to contributors would save a trip to the Actions tab. Today the only signal is GitHub's own default behavior — a failed check on the PR and email notifications to repo watchers.
 
@@ -332,6 +338,7 @@ Given that, TC-017 intentionally does not assert against the exact ~10-minute va
 | 1.2     | 2026-08-03 | Laura Tejada | Replaced the speculative "session tokens expire prematurely" risk in §3 with a confirmed ~10-minute cookie TTL finding; rescoped TC-017 to avoid asserting against that undocumented implementation detail. See below. |
 | 1.3     | 2026-08-03 | Laura Tejada | Added two risk rows to §3 covering item detail page defects found for `problem_user` (BUG-010, BUG-011); the item detail page had no prior test coverage at all. See below.                                            |
 | 1.4     | 2026-08-03 | Laura Tejada | Corrected the BUG-011 risk row in §3 after automating TC-038 showed the original "detail-page-only" framing was based on a single, non-representative sample. See below.                                               |
+| 1.5     | 2026-08-07 | Laura Tejada | Added the missing GitHub Pages report-deployment detail to §8.2, which documented artifact upload but not where the live report is actually published. See below.                                                      |
 
 ### 1.1 — Cross-session/cart isolation risk corrected (2026-07-31)
 
@@ -364,5 +371,13 @@ Given that, TC-017 intentionally does not assert against the exact ~10-minute va
 **How it is now:** Automating TC-038 required exercising every product by id rather than one sample, which surfaced an alternating pattern instead: `Add to cart` is a no-op for `Sauce Labs Bolt T-Shirt`, `Sauce Labs Fleece Jacket`, and `Test.allTheThings() T-Shirt (Red)`, and works for `Sauce Labs Backpack`, `Sauce Labs Bike Light`, and `Sauce Labs Onesie` — identically on both the item detail page and the inventory list. The risk row in §3 was reworded to describe this as a per-product failure affecting both pages, not a detail-page-specific one. TC-038 in `docs/TEST-CASES.md` was rewritten to loop over every product id, and was verified to fail for the correct reason (with `test.skip` temporarily removed) before being finalized.
 
 **Why:** the original risk and BUG-011 entry were written from a single passing/failing sample each, without checking whether that sample generalized — the same category of mistake this plan has now corrected three times (v1.1, v1.2, and this one), each time from testing a claim against the app's actual behavior rather than a first impression. Here, the control check on the list page happened to land on a working product, which made the detail page look uniquely broken when it wasn't. The corrected finding is also more actionable: it points toward a shared root cause with BUG-007 (both look like the same broken per-product click-handler binding responsible for BUG-010) rather than treating the detail page as its own isolated problem.
+
+### 1.5 — CI/CD report deployment documented in §8.2 (2026-08-07)
+
+**How it was:** §8.2's "Artifact Retention" bullet only described the GitHub Actions artifact upload that every workflow performs. It said nothing about the fact that two of the five workflows (`playwright.yml`, `on_main_pr.yml`) additionally deploy their HTML report to GitHub Pages — so the actual, browsable "where do I see the report" answer lived only in `README.md`, not here.
+
+**How it is now:** Added a "Live Report Deployment" bullet to §8.2 listing both published GitHub Pages paths (`/report/` for push-to-`main`, `/changes-report/` for PR-to-`main`), noting both are overwritten on every run with no deploy history, and clarifying that `on_branch_push.yml`'s smoke job is artifact-only with no Pages deploy — matching what `README.md`'s CI/CD section already documents, so the two docs no longer disagree by omission.
+
+**Why:** thisis documente in the README file, but a reader checking TEST-PLAN's own CI/CD section first would have come away thinking artifact download was the only way to see a report, missing the two live URLs entirely.
 
 ---

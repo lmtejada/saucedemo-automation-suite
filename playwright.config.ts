@@ -6,14 +6,18 @@ import { StorageStatePaths } from '@enums/app';
 /**
  * Load environment variables from .env file.
  * Defaults to .env.dev if ENVIRONMENT is not set.
+ * Skipped on CI: workflows inject APP_URL/USER_NAME/USER_PASSWORD (etc.)
+ * directly as job env vars, and no .env.* file is checked in for CI to read.
  *
  * Usage:
  *   ENVIRONMENT=staging npx playwright test
  */
-const environment = process.env.ENVIRONMENT ?? 'dev';
-const environmentPath = `.env.${environment}`;
+if (!process.env.CI) {
+    const environment = process.env.ENVIRONMENT ?? 'dev';
+    const environmentPath = `.env.${environment}`;
 
-dotenv.config({ path: environmentPath });
+    dotenv.config({ path: environmentPath });
+}
 
 /**
  * Playwright Test Configuration

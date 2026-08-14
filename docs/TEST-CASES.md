@@ -1238,7 +1238,7 @@ Found while adding navigation menu coverage. See BUG-008 in the Defect log.
 **Type:** Functional<br>
 **Priority:** 🟡 Medium<br>
 **Automated:** Yes<br>
-**Automation reference:** `tests/sanity.spec.ts` — Scenario: "visual rendering sanity check" (login page & inventory page structural layout renders)<br>
+**Automation reference:** `tests/sanity.spec.ts` — Scenarios: "visual rendering sanity check" (login & inventory), "cart page visual rendering", "checkout complete page visual rendering"<br>
 **Tags:** `@visual`<br>
 
 **Preconditions:**
@@ -1247,16 +1247,18 @@ Found while adding navigation menu coverage. See BUG-008 in the Defect log.
 
 **Test steps:**
 
-| Step | Action                                                      | Expected result                                               |
-| ---- | ----------------------------------------------------------- | ------------------------------------------------------------- |
-| 1    | Navigate to `/index.html` and trigger visual assertion      | Login page layout matches `login-page-render.png` snapshot    |
-| 2    | Log in as `standard_user` and navigate to `/inventory.html` | Inventory layout matches `inventory-page-render.png` snapshot |
+| Step | Action                                                      | Expected result                                                               |
+| ---- | ----------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| 1    | Navigate to `/index.html` and trigger visual assertion      | Login page layout matches `login-page-render.png` snapshot                    |
+| 2    | Log in as `standard_user` and navigate to `/inventory.html` | Inventory layout matches `inventory-page-render.png` snapshot                 |
+| 3    | Load the cart page with the seeded 3-item cart state        | Cart layout matches `cart-page-render.png` snapshot                           |
+| 4    | Navigate directly to `/checkout-complete.html`              | Checkout-complete layout matches `checkout-complete-page-render.png` snapshot |
 
 **Expected result:**
 Core page structural layouts match Ubuntu CI visual baseline snapshots within pixel tolerance limits.
 
 **Actual result:**
-Matches expected — both snapshots render within pixel tolerance of the Ubuntu CI baselines.
+All four scenarios render and pass locally against a fresh baseline. Steps 1–2 match the existing Ubuntu CI baselines. Steps 3–4 (cart, checkout-complete) are new — their official baseline still needs to be generated on the Ubuntu runner via the `playwright-snapshots.yml` workflow before their first CI run, per this suite's established process for avoiding OS font-rendering diffs (see Notes).
 
 **Test data:**
 
@@ -1265,9 +1267,9 @@ Matches expected — both snapshots render within pixel tolerance of the Ubuntu 
 | Viewport | 1280x720 |
 
 **Notes:**
-Generated and executed in Ubuntu CI runner to prevent OS font-rendering anti-aliasing diffs.
+Generated and executed in Ubuntu CI runner to prevent OS font-rendering anti-aliasing diffs. Locally-generated baselines are gitignored (`.git/info/exclude`) specifically so they can't accidentally get committed in place of the Ubuntu ones.
 
-**Status:** ✅ Pass
+**Status:** 🟡 Partial — steps 1–2 pass against CI baselines; steps 3–4 pass locally, pending their first Ubuntu-generated baseline.
 
 ---
 
